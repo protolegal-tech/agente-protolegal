@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PROTOLEGAL - Agente Inteligente de Litigio Administrativo</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,400&display=swap" rel="stylesheet">
+    <!-- CSS Estilos -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar de Navegación -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo-container">
+                    <img src="assets/avatar.png" alt="PROTOLEGAL Logo" class="app-logo">
+                    <div class="logo-text">
+                        <span class="logo-title">PROTOLEGAL</span>
+                        <span class="logo-subtitle">Agente Inteligente</span>
+                    </div>
+                </div>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <button class="nav-btn active" data-tab="dashboard" id="btn-tab-dashboard">
+                    <svg viewBox="0 0 24 24" class="nav-icon"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
+                    <span>Dashboard</span>
+                </button>
+                <button class="nav-btn" data-tab="chat" id="btn-tab-chat">
+                    <svg viewBox="0 0 24 24" class="nav-icon"><path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 9h12v2H6V9zm8 5H6v-2h8v2zm4-6H6V6h12v2z"/></svg>
+                    <span>Agente Legal</span>
+                    <span class="badge-split">Split</span>
+                </button>
+                <button class="nav-btn" data-tab="evaluador" id="btn-tab-evaluador">
+                    <svg viewBox="0 0 24 24" class="nav-icon"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10h-4v4h-2v-4H7v-2h4V7h2v4h4v2z"/></svg>
+                    <span>Evaluador de Casos</span>
+                </button>
+                <button class="nav-btn" data-tab="generador" id="btn-tab-generador">
+                    <svg viewBox="0 0 24 24" class="nav-icon"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
+                    <span>Generador de Escritos</span>
+                </button>
+                <button class="nav-btn" data-tab="memoria" id="btn-tab-memoria">
+                    <svg viewBox="0 0 24 24" class="nav-icon"><path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H8V4h12v12z"/></svg>
+                    <span>Sistema de Memoria</span>
+                </button>
+            </nav>
+
+            <!-- Historial de Chats Guardados en la barra lateral principal -->
+            <div class="sidebar-chat-history">
+                <div class="sidebar-history-header">
+                    <span>Chats Guardados</span>
+                    <button class="btn-new-chat-sidebar" onclick="app.createNewSession()" title="Iniciar nueva conversación y escrito">+</button>
+                </div>
+                <div class="sidebar-history-list" id="chat-sessions-list">
+                    <!-- Cargado Dinámicamente -->
+                </div>
+            </div>
+
+            <div class="sidebar-footer">
+                <div class="user-profile" id="user-profile-trigger" onclick="app.openProfileModal()" style="cursor: pointer;" title="Editar Perfil de Abogado">
+                    <div class="user-avatar" id="sidebar-user-avatar">PL</div>
+                    <div class="user-info">
+                        <span class="user-name" id="sidebar-user-name">Abogado Principal</span>
+                        <span class="user-role" id="sidebar-user-role">PROTOLEGAL</span>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Contenido Principal -->
+        <main class="main-content">
+            <!-- Pestaña 1: Dashboard -->
+            <section id="tab-dashboard" class="tab-pane active">
+                <header class="content-header">
+                    <h1>Centro de Operaciones y Monitoreo Legal</h1>
+                    <p class="subtitle">Monitoreo de vigencia normativa, expedientes y cartera gubernamental de PROTOLEGAL.</p>
+                </header>
+
+                <div class="dashboard-grid">
+                    <!-- Cards de Métricas -->
+                    <div class="metric-card gold-border">
+                        <div class="metric-header">
+                            <span class="metric-title">Cartera Recuperada</span>
+                            <span class="metric-badge">Mes Actual</span>
+                        </div>
+                        <div class="metric-value" id="dash-recovered-value">$15,400,000 MXN</div>
+                        <div class="metric-sub">Tasa de Éxito en TFJA: <span class="text-teal">94%</span></div>
+                    </div>
+                    
+                    <div class="metric-card">
+                        <div class="metric-header">
+                            <span class="metric-title">Licitaciones Evaluadas</span>
+                            <span class="metric-badge">En CompraNet</span>
+                        </div>
+                        <div class="metric-value" id="dash-evaluated-value">12 Casos</div>
+                        <div class="metric-sub">Riesgos Legales Evitados: <span class="text-gold">3 Bases Ilegales</span></div>
+                    </div>
+
+                    <div class="metric-card">
+                        <div class="metric-header">
+                            <span class="metric-title">Escritos en Memoria</span>
+                            <span class="metric-badge">Persistentes</span>
+                        </div>
+                        <div class="metric-value" id="dash-docs-value">4 Activos</div>
+                        <div class="metric-sub">Archivos en disco: <span class="text-muted">.memoria/documentos/</span></div>
+                    </div>
+                </div>
+
+                <div class="dashboard-sections">
+                    <!-- Monitoreo Normativo -->
+                    <div class="dashboard-panel card-glass flex-2">
+                        <div class="panel-header">
+                            <h2>Centro de Monitoreo Normativo (DOF / SCJN)</h2>
+                            <span class="status-indicator online">Conectado a Fuentes Oficiales</span>
+                        </div>
+                        <p class="panel-desc">Monitoreo de reformas en tiempo real de leyes administrativas de contratación pública.</p>
+                        
+                        <div class="law-table-container">
+                            <table class="law-table">
+                                <thead>
+                                    <tr>
+                                        <th>Ordenamiento Relevant</th>
+                                        <th>Última Reforma DOF</th>
+                                        <th>Estado de Vigencia</th>
+                                        <th>Acción de Búsqueda</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><strong>LAASSP</strong> (L. Adquisiciones, Arrendamientos...)</td>
+                                        <td>2024-05-20</td>
+                                        <td><span class="badge-status success">Vigente y Verificada</span></td>
+                                        <td><button class="btn-search-law" onclick="app.verifyLaw('LAASSP')">Buscar Reformas</button></td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>LOPSRM</strong> (L. Obras Públicas y Servicios...)</td>
+                                        <td>2024-06-12</td>
+                                        <td><span class="badge-status success">Vigente y Verificada</span></td>
+                                        <td><button class="btn-search-law" onclick="app.verifyLaw('LOPSRM')">Buscar Reformas</button></td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>LFPCA</strong> (L. Federal Procedimiento Contencioso Admin.)</td>
+                                        <td>2025-01-15</td>
+                                        <td><span class="badge-status success">Vigente y Verificada</span></td>
+                                        <td><button class="btn-search-law" onclick="app.verifyLaw('LFPCA')">Buscar Reformas</button></td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>LFPA</strong> (L. Federal de Procedimiento Administrativo)</td>
+                                        <td>2023-11-08</td>
+                                        <td><span class="badge-status success">Vigente y Verificada</span></td>
+                                        <td><button class="btn-search-law" onclick="app.verifyLaw('LFPA')">Buscar Reformas</button></td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>LGRA</strong> (L. General Responsabilidades Administrativas)</td>
+                                        <td>2024-12-02</td>
+                                        <td><span class="badge-status success">Vigente y Verificada</span></td>
+                                        <td><button class="btn-search-law" onclick="app.verifyLaw('LGRA')">Buscar Reformas</button></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Notificaciones de la Suprema Corte -->
+                    <div class="dashboard-panel card-glass flex-1">
+                        <div class="panel-header">
+                            <h2>Jurisprudencia SCJN Reciente</h2>
+                        </div>
+                        <div class="jurisprudence-feed">
+                            <div class="feed-item">
+                                <span class="feed-date">10 de Julio, 2026</span>
+                                <h4>Contradicción de Criterios (2026115)</h4>
+                                <p>Publicada en Semanario. La rescisión unilateral de contratos LAASSP debe sustanciarse garantizando debidamente audiencia previa.</p>
+                                <span class="feed-tag text-gold">Obligatoria</span>
+                            </div>
+                            <div class="feed-item">
+                                <span class="feed-date">02 de Julio, 2026</span>
+                                <h4>Precedente TFJA (Sala Superior)</h4>
+                                <p>Las estimaciones autorizadas con firma electrónica delegacional hacen exigible la obligación de pago inmediato de la dependencia.</p>
+                                <span class="feed-tag text-teal">Precedente</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Pestaña 2: Chat con el Agente (Doble Panel) -->
+            <section id="tab-chat" class="tab-pane">
+                <div class="split-layout">
+                    <!-- Panel Izquierdo: Chat -->
+                    <div class="chat-panel card-glass">
+                        <div class="chat-header">
+                            <div class="agent-profile">
+                                <img src="assets/avatar.png" alt="PROTOLEGAL Agent" class="agent-avatar">
+                                <div class="agent-info">
+                                    <h3>PROTOLEGAL AI</h3>
+                                    <span class="agent-status">Agente Jurídico • Protocolo de Rigor y Trazabilidad Activo</span>
+                                </div>
+                            </div>
+                            <div class="client-selector-container">
+                                <label for="active-client-select">Cliente:</label>
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <select id="active-client-select" class="client-dropdown">
+                                        <option value="">-- Seleccionar / Nuevo --</option>
+                                        <option value="NEXTMED">NEXTMED</option>
+                                        <option value="ASPID">ASPID</option>
+                                        <option value="EEE">EEE</option>
+                                        <option value="MARLEX-HC">MARLEX-HC</option>
+                                    </select>
+                                    <button class="btn-edit-client" id="btn-edit-active-client" onclick="app.openEditClientModal()" title="Editar Razón Social y datos del cliente activo" style="background: rgba(255,255,255,0.05); border: 1px solid var(--border-glass); color: var(--color-gold); width: 28px; height: 28px; border-radius: 4px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: var(--transition-smooth); font-size: 0.95rem;">✏️</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Historial de Conversación -->
+                        <div class="chat-messages" id="chat-messages-container">
+                            <div class="message system-msg">
+                                <p><strong>Sistema:</strong> Se ha iniciado la sesión legal de PROTOLEGAL. Protocolo de Verificación DOF/SCJN cargado.</p>
+                            </div>
+                            <div class="message agent">
+                                <div class="msg-content">
+                                    Saludos, Licenciado. Soy el Agente Jurídico de **PROTOLEGAL**, especializado en Contratación Pública (LAASSP/LOPSRM) y Litigio Administrativo ante el TFJA. 
+                                    
+                                    ¿En qué escrito o consulta trabajaremos hoy? Puedes seleccionar un cliente existente, mencionar uno nuevo para darlo de alta automáticamente, o pedirme redactar un documento en el panel derecho.
+                                </div>
+                                <div class="msg-meta">
+                                    <span class="msg-time">Hace un momento</span>
+                                    <span class="verification-badge" onclick="app.toggleTrazabilidadGlobal()"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg> Vigencia SCJN Activa</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Preguntas Recomendadas -->
+                        <div class="chat-suggestions">
+                            <button class="btn-suggestion" onclick="app.sendSuggestion('Redactar un Recurso de Inconformidad contra rescisión ilegal para NEXTMED')">Redactar Inconformidad NEXTMED</button>
+                            <button class="btn-suggestion" onclick="app.sendSuggestion('Iniciar reclamo de pago para el cliente EEE contratado por el IMSS')">Reclamar Pago EEE</button>
+                            <button class="btn-suggestion" onclick="app.sendSuggestion('Crear demanda de nulidad ante el TFJA contra inhabilitación de MARLEX-HC')">Demanda Nulidad MARLEX-HC</button>
+                            <button class="btn-suggestion" onclick="app.sendSuggestion('Dar de alta nuevo cliente: CONSTRUMEX S.A. de C.V.')">Dar de alta cliente nuevo</button>
+                        </div>
+
+                        <!-- Entrada de Mensajes -->
+                        <div class="chat-input-bar">
+                            <textarea id="chat-textarea" placeholder="Escribe tu requerimiento legal o instrucciones para redactar/corregir..." rows="2"></textarea>
+                            <button class="btn-send" id="btn-send-message">
+                                <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Panel Derecho: Visor de Escritos -->
+                    <div class="doc-viewer-panel card-glass">
+                        <div class="doc-viewer-header">
+                            <div class="doc-title-info">
+                                <span class="doc-badge">Visor de Documentos</span>
+                                <h3 id="current-doc-title">Documento Nuevo.doc</h3>
+                            </div>
+                            <div class="doc-actions">
+                                <button class="btn-doc-action" onclick="document.getElementById('doc-upload-input').click()" title="Subir un escrito legal (.doc, .txt, .html, .md)">
+                                    <svg viewBox="0 0 24 24" style="width: 16px; height: 16px; fill: currentColor;"><path d="M9 16h6v-6h4l-7-7-7 7h4zm-4 2h14v2H5z"/></svg>
+                                    <span>Subir</span>
+                                </button>
+                                <input type="file" id="doc-upload-input" accept=".txt,.html,.md,.doc" style="display:none;" onchange="app.handleDocumentUpload(this)">
+
+                                <button class="btn-doc-action" id="btn-verify-consistency" title="Validar congruencia legal y consistencia de datos duros">
+                                    <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                                    <span>Verificar Coherencia</span>
+                                </button>
+                                <button class="btn-doc-action btn-gold" id="btn-download-word" title="Descargar en formato compatible con Microsoft Word en Arial 12 Justificado">
+                                    <svg viewBox="0 0 24 24"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM17 13l-5 5-5-5h3V9h4v4h3z"/></svg>
+                                    <span>Descargar</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Controles de Edición Rápida de Formato -->
+                        <div class="doc-format-toolbar">
+                            <span class="font-indicator">Arial 12 pt Justificado (Norma Oficial)</span>
+                            <div class="toolbar-divider"></div>
+                            <span class="bold-status">Fórmula de Negrita: <strong>Aplicada Directamente</strong></span>
+                        </div>
+
+                        <!-- Hoja de Word Física (Arial 12 Justificado) -->
+                        <div class="word-sheet-container">
+                            <div class="word-sheet" id="rendered-document-sheet" contenteditable="true">
+                                <div class="empty-doc-placeholder">
+                                    <svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
+                                    <p>El escrito redactado aparecerá aquí de forma automática al solicitarlo en el chat del Agente.</p>
+                                    <p class="sub-placeholder">Formateado en tipografía Arial 12 con alineación Justificada para su descarga inmediata.</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Panel de Alertas de Rigor y Coherencia -->
+                        <div class="linter-alert-panel hidden" id="linter-alert-container">
+                            <div class="alert-panel-header">
+                                <span>Bitácora de Coherencia Contenciosa</span>
+                                <button class="btn-close-alert" onclick="app.hideAlerts()">&times;</button>
+                            </div>
+                            <div class="alert-list" id="linter-alert-list">
+                                <!-- Dinámico -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Pestaña 3: Evaluador de Casos -->
+            <section id="tab-evaluador" class="tab-pane">
+                <header class="content-header">
+                    <h1>Evaluador y Auditor de Casos Administrativos</h1>
+                    <p class="subtitle">Evaluación de requisitos de licitaciones públicas y viabilidad de cobro a entidades gubernamentales.</p>
+                </header>
+
+                <div class="evaluador-split">
+                    <!-- Auditor de Licitaciones (LAASSP) -->
+                    <div class="eval-card card-glass">
+                        <div class="eval-header icon-gold">
+                            <svg viewBox="0 0 24 24" class="eval-icon"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+                            <div>
+                                <h3>Auditor de Compatibilidad de Licitaciones</h3>
+                                <p>Evalúa bases de licitaciones públicas para detectar cláusulas restrictivas o ilegales bajo la LAASSP.</p>
+                            </div>
+                        </div>
+
+                        <form id="form-eval-licitacion" class="eval-form" onsubmit="app.runLicitacionAudit(event)">
+                            <div class="form-group">
+                                <label for="lic-num">Número de Licitación / Expediente:</label>
+                                <input type="text" id="lic-num" placeholder="Ej. LA-050GYR988-E12-2026" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="lic-dependency">Dependencia / Entidad:</label>
+                                <input type="text" id="lic-dependency" placeholder="Ej. IMSS Oficinas Centrales" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="lic-clause">Cláusulas o Requisitos a Auditar (Copia el texto de las bases):</label>
+                                <textarea id="lic-clause" placeholder="Copia los requisitos de experiencia, patentes o plazos de entrega que deseas evaluar..." rows="4" required></textarea>
+                            </div>
+                            <button type="submit" class="btn-eval-submit">Auditar Bases de Licitación</button>
+                        </form>
+
+                        <!-- Resultados Auditoría Licitación -->
+                        <div class="eval-results hidden" id="lic-results-panel">
+                            <h4>Resultado de Auditoría Legal</h4>
+                            <div class="gauge-container">
+                                <div class="gauge-ring" id="lic-gauge">
+                                    <span class="gauge-text" id="lic-gauge-val">0%</span>
+                                </div>
+                                <div class="gauge-info">
+                                    <span class="gauge-status" id="lic-status-text">Analizando...</span>
+                                    <span class="gauge-desc">Nivel de legalidad y libre participación de los requisitos.</span>
+                                </div>
+                            </div>
+                            <div class="alert-box alert-yellow" id="lic-alert-box">
+                                <!-- Dinámico -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Calculador de Recuperación de Cartera -->
+                    <div class="eval-card card-glass">
+                        <div class="eval-header icon-teal">
+                            <svg viewBox="0 0 24 24" class="eval-icon"><path d="M21 18v1c0 1.1-.9 2-2 2H5c-1.11 0-2-.9-2-2V5c0-1.1.89-2 2-2h14c1.1 0 2 .9 2 2v1h-9c-1.11 0-2 .9-2 2v8c0 1.1.89 2 2 2h9zm-9-2h10V8H12v8zm4-2.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>
+                            <div>
+                                <h3>Gestor y Calculador de Recuperación de Cartera</h3>
+                                <p>Calcula la viabilidad de cobrar deudas a dependencias gubernamentales y determina la vía legal adecuada.</p>
+                            </div>
+                        </div>
+
+                        <form id="form-eval-cartera" class="eval-form" onsubmit="app.runCarteraCalculation(event)">
+                            <div class="form-group-row">
+                                <div class="form-group">
+                                    <label for="cart-dependency">Entidad Deudora:</label>
+                                    <select id="cart-dependency" required>
+                                        <option value="IMSS">IMSS</option>
+                                        <option value="ISSSTE">ISSSTE</option>
+                                        <option value="IMSS-BIENESTAR">IMSS-BIENESTAR</option>
+                                        <option value="SEDENA">SEDENA</option>
+                                        <option value="OTRA">Otra Dependencia Federal</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="cart-amount">Monto Pendiente (MXN):</label>
+                                    <input type="number" id="cart-amount" placeholder="Ej. 15000000" required>
+                                </div>
+                            </div>
+                            <div class="form-group-row">
+                                <div class="form-group">
+                                    <label for="cart-date">Fecha de Notificación / Contra-recibo:</label>
+                                    <input type="date" id="cart-date" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="cart-docs">Soportes Documentales Disponibles:</label>
+                                    <div class="checkbox-group">
+                                        <label><input type="checkbox" id="chk-contrato" checked> Contrato Firmado</label>
+                                        <label><input type="checkbox" id="chk-estimacion" checked> Estimación Autorizada</label>
+                                        <label><input type="checkbox" id="chk-acta" checked> Acta Entrega-Recepción</label>
+                                        <label><input type="checkbox" id="chk-factura" checked> Facturas Emitidas</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn-eval-submit">Calcular Viabilidad e Intereses</button>
+                        </form>
+
+                        <!-- Resultados Viabilidad Cartera -->
+                        <div class="eval-results hidden" id="cart-results-panel">
+                            <h4>Estrategia Legal y Liquidación de Adeudo</h4>
+                            <div class="cartera-metrics">
+                                <div class="c-metric">
+                                    <span class="c-title">Viabilidad de Cobro</span>
+                                    <span class="c-value text-teal" id="cart-viability-percent">0%</span>
+                                </div>
+                                <div class="c-metric">
+                                    <span class="c-title">Intereses Moratorios CFF (Art. 21)</span>
+                                    <span class="c-value text-gold" id="cart-interest-val">$0.00 MXN</span>
+                                </div>
+                                <div class="c-metric">
+                                    <span class="c-title">Adeudo Total Exigible</span>
+                                    <span class="c-value" id="cart-total-exigible">$0.00 MXN</span>
+                                </div>
+                            </div>
+                            <div class="timeline-container">
+                                <h5>Plazos Procesales Explicitos y Vía Legal Recomendada</h5>
+                                <div class="timeline" id="cart-timeline-steps">
+                                    <!-- Dinámico -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Pestaña 4: Generador de Escritos -->
+            <section id="tab-generador" class="tab-pane">
+                <header class="content-header">
+                    <h1>Redactor de Escritos y Recursos Administrativos</h1>
+                    <p class="subtitle">Asistente automatizado para la creación de escritos formales con rigor silogístico.</p>
+                </header>
+
+                <div class="generador-container card-glass">
+                    <div class="gen-wizard-layout">
+                        <!-- Formulario de Entrada -->
+                        <div class="gen-wizard-form">
+                            <h3>Parámetros del Documento</h3>
+                            <form id="form-document-generator" onsubmit="app.generateWizardDocument(event)">
+                                <div class="form-group">
+                                    <label for="gen-template">Seleccionar Plantilla de Documento:</label>
+                                    <select id="gen-template" class="large-select" onchange="app.changeTemplateFields(this.value)">
+                                        <option value="inconformidad">Recurso de Inconformidad (Bases/Incumplimiento LAASSP)</option>
+                                        <option value="reclamacion">Escrito de Reclamación de Pago Tardío</option>
+                                        <option value="conciliacion">Solicitud de Procedimiento de Conciliación ante la SFP</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="gen-client">Nombre / Razón Social del Cliente:</label>
+                                    <input type="text" id="gen-client" placeholder="Ej. Nextmed Solutions S.A. de C.V." required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="gen-authority">Autoridad / Dependencia Demandada:</label>
+                                    <input type="text" id="gen-authority" placeholder="Ej. Instituto Mexicano del Seguro Social" required>
+                                </div>
+
+                                <div class="form-group-row">
+                                    <div class="form-group">
+                                        <label for="gen-contract">Número de Contrato / Licitación:</label>
+                                        <input type="text" id="gen-contract" placeholder="Ej. LA-050GYR988-E12-2026" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="gen-amount">Monto de la Prestación Reclamada (MXN):</label>
+                                        <input type="number" id="gen-amount" placeholder="Ej. 15400000">
+                                    </div>
+                                </div>
+
+                                <div class="form-group-row">
+                                    <div class="form-group">
+                                        <label for="gen-date-notif">Fecha de Notificación del Acto:</label>
+                                        <input type="date" id="gen-date-notif" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="gen-expediente">Número de Expediente (Si cuenta con él):</label>
+                                        <input type="text" id="gen-expediente" placeholder="Ej. SFP-1093-2026">
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="gen-hechos">Síntesis de los Hechos (Breve descripción cronológica):</label>
+                                    <textarea id="gen-hechos" placeholder="Narra los hechos principales del caso para incorporarlos al escrito con rigor cronológico..." rows="4" required></textarea>
+                                </div>
+
+                                <button type="submit" class="btn-gen-document">Redactar Escrito en Panel de Doble Pantalla</button>
+                            </form>
+                        </div>
+
+                        <!-- Consejos de Rigor TFJA -->
+                        <div class="gen-wizard-tips">
+                            <div class="tips-box">
+                                <h3>Directrices de Rigor Contencioso</h3>
+                                <div class="tip-item">
+                                    <div class="tip-icon"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg></div>
+                                    <div class="tip-text">
+                                        <strong>Premisa Mayor e IUS</strong>
+                                        <span>El asistente incorporará automáticamente tesis con número de registro verificado para sustentar los agravios.</span>
+                                    </div>
+                                </div>
+                                <div class="tip-item">
+                                    <div class="tip-icon"><svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg></div>
+                                    <div class="tip-text">
+                                        <strong>Exactitud de Datos</strong>
+                                        <span>El linter interno comprobará que los montos, contratos e identidades coincidan exactamente en el preámbulo, hechos y petitorios del documento.</span>
+                                    </div>
+                                </div>
+                                <div class="tip-item">
+                                    <div class="tip-icon"><svg viewBox="0 0 24 24"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div>
+                                    <div class="tip-text">
+                                        <strong>Cómputo de Plazos</strong>
+                                        <span>Se desglosará explícitamente el inicio, transcurso (excluyendo inhábiles) y vencimiento del término para impugnación.</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Pestaña 5: Sistema de Memoria -->
+            <section id="tab-memoria" class="tab-pane">
+                <header class="content-header">
+                    <h1>Explorador del Sistema de Memoria en Disco</h1>
+                    <p class="subtitle">Acceso directo a fichas vivas de clientes, bitácoras de materias y tesis del directorio <code>.memoria/</code>.</p>
+                </header>
+
+                <div class="memoria-layout">
+                    <!-- Sidebar de Categorías de Memoria -->
+                    <div class="memoria-sidebar card-glass">
+                        <h3>Estructura .memoria/</h3>
+                        <div class="folder-tree">
+                            <div class="tree-item folder expanded">
+                                <span class="tree-label" onclick="app.toggleTreeFolder(this)">📁 clientes</span>
+                                <div class="tree-children">
+                                    <div class="tree-item file" onclick="app.loadMemoryFile('clientes/NEXTMED')">📄 NEXTMED.md</div>
+                                    <div class="tree-item file" onclick="app.loadMemoryFile('clientes/ASPID')">📄 ASPID.md</div>
+                                    <div class="tree-item file" onclick="app.loadMemoryFile('clientes/EEE')">📄 EEE.md</div>
+                                    <div class="tree-item file" onclick="app.loadMemoryFile('clientes/MARLEX-HC')">📄 MARLEX-HC.md</div>
+                                    <div class="tree-item file" onclick="app.loadMemoryFile('clientes/_PLANTILLA-CLIENTE')">📄 _PLANTILLA-CLIENTE.md</div>
+                                </div>
+                            </div>
+                            <div class="tree-item folder expanded">
+                                <span class="tree-label" onclick="app.toggleTreeFolder(this)">📁 conocimiento</span>
+                                <div class="tree-children">
+                                    <div class="tree-item file" onclick="app.loadMemoryFile('conocimiento/tesis-verificadas')">📄 tesis-verificadas.md</div>
+                                    <div class="tree-item file" onclick="app.loadMemoryFile('conocimiento/criterios-redaccion')">📄 criterios-redaccion.md</div>
+                                </div>
+                            </div>
+                            <div class="tree-item folder expanded">
+                                <span class="tree-label" onclick="app.toggleTreeFolder(this)">📁 docs_referencia</span>
+                                <div class="tree-children" id="reference-docs-tree">
+                                    <!-- Cargado Dinámicamente -->
+                                </div>
+                            </div>
+                            <div class="tree-item file" onclick="app.loadMemoryFile('INDICE')">
+                                <span>📄 INDICE.md</span>
+                            </div>
+                        </div>
+
+                        <!-- Cargar Documentos de Referencia para Alimentar la Memoria -->
+                        <div class="memory-upload-section" style="margin-top: 20px; border-top: 1px solid var(--border-glass); padding-top: 15px;">
+                            <h4 style="font-size: 0.78rem; font-weight: 600; color: var(--color-gold); text-transform: uppercase; margin-bottom: 10px; display: flex; align-items: center; gap: 6px;">
+                                <svg viewBox="0 0 24 24" style="width: 14px; height: 14px; fill: currentColor;"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.53c-.26-.81-1-1.4-1.9-1.4h-1v-3c0-.55-.45-1-1-1h-6v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+                                Alimentar Memoria (IA)
+                            </h4>
+                            <p style="font-size: 0.68rem; color: var(--text-muted); margin-bottom: 10px; line-height: 1.25;">Sube escritos, contratos o precedentes de referencia. El agente los usará de base para redactar futuros escritos.</p>
+                            
+                            <button class="btn-new-chat" onclick="document.getElementById('memory-ref-upload-input').click()" style="width: 100%; gap: 6px; padding: 10px;">
+                                <svg viewBox="0 0 24 24" style="width: 14px; height: 14px; fill: currentColor;"><path d="M9 16h6v-6h4l-7-7-7 7h4zm-4 2h14v2H5z"/></svg>
+                                Cargar Documento
+                            </button>
+                            <input type="file" id="memory-ref-upload-input" accept=".txt,.html,.md,.docx" style="display:none;" onchange="app.handleMemoryReferenceUpload(this)">
+                        </div>
+                    </div>
+
+                    <!-- Panel de Lectura de Archivo de Memoria -->
+                    <div class="memoria-viewer card-glass">
+                        <div class="viewer-header">
+                            <span class="viewer-path" id="memory-file-path">.memoria/INDICE.md</span>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <span class="viewer-sync-badge"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg> Persistido Localmente</span>
+                                <button class="btn-doc-action" id="btn-edit-memory" onclick="app.toggleMemoryEdit()" style="padding: 4px 10px; font-size: 0.72rem; gap: 4px; height: 26px; margin: 0; min-width: auto; width: auto; font-family: inherit;">✏️ Editar</button>
+                            </div>
+                        </div>
+                        <div class="viewer-content markdown-body" id="memory-file-content">
+                            <!-- Renderizado Markdown Dinámico -->
+                        </div>
+                        <div class="viewer-content hidden" id="memory-file-editor-container" style="padding: 15px; display: flex; flex-direction: column; flex: 1;">
+                            <textarea id="memory-file-editor" style="flex: 1; min-height: 420px; background: rgba(0,0,0,0.35); border: 1px solid var(--border-glass); color: var(--text-primary); border-radius: 6px; padding: 12px; font-family: monospace; font-size: 0.85rem; line-height: 1.45; resize: vertical; margin-bottom: 12px; box-sizing: border-box; width: 100%;"></textarea>
+                            <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                                <button class="btn-doc-action" onclick="app.cancelMemoryEdit()" style="padding: 6px 12px; font-size: 0.8rem; margin: 0; min-width: auto; width: auto;">Cancelar</button>
+                                <button class="btn-doc-action btn-gold" onclick="app.saveMemoryEdit()" style="padding: 6px 12px; font-size: 0.8rem; margin: 0; min-width: auto; width: auto;">Guardar Cambios</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Modal de Registro/Edición de Perfil de Abogado -->
+    <div class="profile-modal-overlay hidden" id="profile-modal">
+        <div class="profile-modal card-glass">
+            <div class="profile-modal-header">
+                <h3>Editar Perfil de Abogado</h3>
+                <button class="btn-close-profile-modal" onclick="app.closeProfileModal()">&times;</button>
+            </div>
+            <form id="form-edit-profile" onsubmit="app.saveUserProfile(event)">
+                <div class="form-group">
+                    <label for="profile-input-name">Nombre Completo:</label>
+                    <input type="text" id="profile-input-name" placeholder="Ej. Lic. Alejandro Ortiz" required>
+                </div>
+                <div class="form-group">
+                    <label for="profile-input-role">Firma / Cargo:</label>
+                    <input type="text" id="profile-input-role" value="PROTOLEGAL" required>
+                </div>
+                <div class="form-group">
+                    <label for="profile-input-file">Foto de Perfil (Imagen):</label>
+                    <input type="file" id="profile-input-file" accept="image/*" onchange="app.handleProfileImageUpload(this)">
+                    <div class="profile-preview-container">
+                        <div class="profile-preview-avatar" id="profile-preview-avatar">PL</div>
+                        <span class="profile-preview-text">Previsualización</span>
+                    </div>
+                </div>
+                <div class="form-group" style="margin-top: 12px; border-top: 1px solid var(--border-glass); padding-top: 12px;">
+                    <label for="profile-input-apikey" style="color: var(--color-gold);">Clave API de Gemini (Opcional):</label>
+                    <input type="password" id="profile-input-apikey" class="form-control" placeholder="Ej. AIzaSy..." style="background: rgba(0,0,0,0.3); border: 1px solid var(--border-glass); color: var(--text-primary); border-radius: 6px; padding: 10px; width: 100%; font-family: monospace;">
+                    <small style="color: var(--text-muted); font-size: 0.72rem; display: block; margin-top: 6px;">
+                        Obtén una clave gratis en <a href="https://aistudio.google.com/" target="_blank" style="color: var(--color-gold); text-decoration: underline; pointer-events: auto;">Google AI Studio</a> para activar el razonamiento de inteligencia artificial y redacción libre en tiempo real.
+                    </small>
+                </div>
+                <div class="profile-modal-actions">
+                    <button type="button" class="btn-doc-action" onclick="app.closeProfileModal()">Cancelar</button>
+                    <button type="submit" class="btn-doc-action btn-gold">Guardar Cambios</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal de Edición de Datos de Cliente -->
+    <div class="profile-modal-overlay hidden" id="edit-client-modal">
+        <div class="profile-modal card-glass">
+            <div class="profile-modal-header">
+                <h3>Editar Datos de Cliente</h3>
+                <button class="btn-close-profile-modal" onclick="app.closeEditClientModal()">&times;</button>
+            </div>
+            <form id="form-edit-client" onsubmit="app.saveClientData(event)">
+                <input type="hidden" id="edit-client-key">
+                <div class="form-group">
+                    <label for="edit-client-name">Nombre / Razón Social del Cliente:</label>
+                    <input type="text" id="edit-client-name" placeholder="Ej. CONSTRUMEX S.A. de C.V." required style="background: rgba(0,0,0,0.3); border: 1px solid var(--border-glass); color: var(--text-primary); border-radius: 6px; padding: 10px; width: 100%;">
+                </div>
+                <div class="form-group" style="margin-top: 12px;">
+                    <label for="edit-client-giro">Giro Comercial:</label>
+                    <input type="text" id="edit-client-giro" placeholder="Ej. Sector médico / Insumos de salud" style="background: rgba(0,0,0,0.3); border: 1px solid var(--border-glass); color: var(--text-primary); border-radius: 6px; padding: 10px; width: 100%;">
+                </div>
+                <div class="form-group" style="margin-top: 12px;">
+                    <label for="edit-client-criterios">Criterios de Redacción específicos:</label>
+                    <textarea id="edit-client-criterios" rows="3" placeholder="Ej. Tono formal, Arial 12 Justificado" style="background: rgba(0,0,0,0.3); border: 1px solid var(--border-glass); color: var(--text-primary); border-radius: 6px; padding: 10px; width: 100%; font-family: inherit; resize: vertical;"></textarea>
+                </div>
+                <div class="profile-modal-actions" style="margin-top: 16px;">
+                    <button type="button" class="btn-doc-action" onclick="app.closeEditClientModal()">Cancelar</button>
+                    <button type="submit" class="btn-doc-action btn-gold">Guardar Cambios</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Scripts de la Aplicación -->
+    <script src="https://cdn.jsdelivr.net/npm/mammoth@1.12.0/mammoth.browser.min.js"></script>
+    <script src="app.js?v=1.0.6"></script>
+</body>
+</html>

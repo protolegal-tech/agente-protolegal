@@ -259,11 +259,11 @@
                                 <h3 id="current-doc-title">Documento Nuevo.doc</h3>
                             </div>
                             <div class="doc-actions">
-                                <button class="btn-doc-action" onclick="document.getElementById('doc-upload-input').click()" title="Subir un escrito legal (.doc, .txt, .html, .md)">
+                                <button class="btn-doc-action" onclick="document.getElementById('doc-upload-input').click()" title="Subir un escrito legal (.doc, .docx, .pdf, .txt, .html, .md)">
                                     <svg viewBox="0 0 24 24" style="width: 16px; height: 16px; fill: currentColor;"><path d="M9 16h6v-6h4l-7-7-7 7h4zm-4 2h14v2H5z"/></svg>
                                     <span>Subir</span>
                                 </button>
-                                <input type="file" id="doc-upload-input" accept=".txt,.html,.md,.doc" style="display:none;" onchange="app.handleDocumentUpload(this)">
+                                <input type="file" id="doc-upload-input" accept=".txt,.html,.md,.doc,.docx,.pdf" style="display:none;" onchange="app.handleDocumentUpload(this)">
 
                                 <button class="btn-doc-action" id="btn-verify-consistency" title="Validar congruencia legal y consistencia de datos duros">
                                     <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
@@ -678,6 +678,7 @@
 
     <!-- Scripts de la Aplicación -->
     <script src="https://cdn.jsdelivr.net/npm/mammoth@1.12.0/mammoth.browser.min.js"></script>
-    <script src="app.js?v=1.0.6"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+    <script src="app.js?v=1.0.7"></script>
 </body>
 </html>

@@ -1005,6 +1005,63 @@ REGLAS DE OPERACIÓN IMPORTANTES:
                 }
             };
             reader.readAsArrayBuffer(file);
+        } else if (fileName.endsWith('.pdf')) {
+            // Caso .pdf: Extraer texto estructurado usando pdf.js en el cliente
+            reader.onload = (e) => {
+                const arrayBuffer = e.target.result;
+                if (typeof pdfjsLib !== 'undefined') {
+                    // Configurar el worker de PDF.js
+                    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+                    
+                    const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+                    loadingTask.promise.then(async (pdf) => {
+                        let fullText = '';
+                        for (let i = 1; i <= pdf.numPages; i++) {
+                            const page = await pdf.getPage(i);
+                            const textContent = await page.getTextContent();
+                            
+                            let lastY = null;
+                            let pageText = '';
+                            for (const item of textContent.items) {
+                                if (lastY !== null && Math.abs(item.transform[5] - lastY) > 8) {
+                                    pageText += '\n';
+                                }
+                                pageText += item.str + ' ';
+                                lastY = item.transform[5];
+                            }
+                            
+                            // Agrupar en párrafos HTML
+                            const paragraphs = pageText.split('\n\n');
+                            const htmlParagraphs = paragraphs
+                                .map(p => p.trim())
+                                .filter(p => p.length > 0)
+                                .map(p => `<p>${p.replace(/\n/g, '<br>')}</p>`)
+                                .join('\n');
+                                
+                            fullText += htmlParagraphs + '\n';
+                        }
+
+                        this.currentDocContent = fullText;
+                        this.currentDocTitle = fileName;
+                        this.syncDocumentView();
+
+                        const sizeKB = (file.size / 1024).toFixed(1);
+                        this.appendMessage('agent', `**[Documento PDF Subido con Éxito]**\n\nHe recibido y extraído el texto del archivo PDF **"${fileName}"** (${sizeKB} KB) localmente en el cliente.\n\nHe formateado el texto a **Arial 12 Justificado** y corrido el **Linter de Rigor Legal** automáticamente para validar su coherencia procesal. Revisa el dictamen al pie del visor.`);
+
+                        setTimeout(() => {
+                            this.runRigorLinter();
+                        }, 600);
+
+                        this.registerImportedDocument(fileName);
+                    }).catch(err => {
+                        console.error("Error al procesar el PDF:", err);
+                        alert("Error al extraer texto del PDF:\n\n" + (err.message || err));
+                    });
+                } else {
+                    alert("La librería PDF.js no está cargada. Asegúrate de tener conexión a Internet.");
+                }
+            };
+            reader.readAsArrayBuffer(file);
         } else {
             // Caso .txt, .html, .md, .doc (HTML)
             reader.onload = (e) => {

@@ -2642,7 +2642,34 @@ ${this.documents.filter(d => d.cliente === key).map(d => `- [${d.tipo}](${d.arch
                     rubro = clean.replace(/^rubro:\s*\**\s*/i, '').replace(/\**$/, '').trim();
                 } else if (clean.toLowerCase().startsWith('instancia/vigencia:')) {
                     const parts = clean.replace(/^instancia\/vigencia:\s*\**\s*/i, '').replace(/\**$/, '').trim();
-                    const pubM    loadEmailSettings() {
+                    const pubMatch = parts.match(/\(Publicado:\s*([^\)]+)\)/i);
+                    if (pubMatch) {
+                        publicacion = pubMatch[1];
+                        vigencia = parts.replace(/\(Publicado:\s*([^\)]+)\)/i, '').trim();
+                    } else {
+                        vigencia = parts;
+                    }
+                }
+            });
+
+            database.push({
+                registro,
+                rubro,
+                vigencia,
+                publicacion
+            });
+        });
+
+        if (database.length > 0) {
+            this.thesisDatabase = database;
+        }
+    }
+
+    // ==========================================================================
+    // MÓDULO EXPERTO: BUZÓN JUDICIAL Y NOTIFICACIONES DE CORREO
+    // ==========================================================================
+
+    loadEmailSettings() {
         const emailStatusText = document.getElementById('email-status-text');
         const statusDot = document.getElementById('status-dot');
         const btnSubmitEmail = document.getElementById('btn-submit-email');

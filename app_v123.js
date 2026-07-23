@@ -2929,17 +2929,7 @@ ${this.documents.filter(d => d.cliente === key).map(d => `- [${d.tipo}](${d.arch
     }
 
     startBackgroundSyncTimer() {
-        if (this.backgroundSyncInterval) return;
-
-        // Primera llegada a los 15 segundos
-        setTimeout(() => {
-            this.receiveSimulatedNewEmail();
-        }, 15000);
-
-        // Intervalo de 60 segundos
-        this.backgroundSyncInterval = setInterval(() => {
-            this.receiveSimulatedNewEmail();
-        }, 60000);
+        // Desactivado por requerimiento: el buzón no debe recibir correos ficticios repetitivos automáticamente
     }
 
     receiveSimulatedNewEmail() {
@@ -3172,57 +3162,6 @@ ${this.documents.filter(d => d.cliente === key).map(d => `- [${d.tipo}](${d.arch
                     actionText: 'Agendar y Preparar Documentos',
                     actionType: 'redactar',
                     read: false
-                },
-                {
-                    id: 'notif_3',
-                    sender: 'Suprema Corte de Justicia de la Nación (SCJN)',
-                    badge: 'scjn',
-                    badgeText: 'SCJN',
-                    subject: 'Publicación de Tesis Obligatoria en Materia de Rescisión Contractual',
-                    time: formatTime(5),
-                    dateRaw: new Date().toISOString().split('T')[0],
-                    expediente: 'Registro Digital: 2026115',
-                    cliente: 'GENERAL',
-                    cuerpo: 'La Segunda Sala publica jurisprudencia obligatoria respecto a que el finiquito de los contratos regulados por la LAASSP constituye una formalidad esencial que debe preceder a las sanciones.',
-                    urgente: false,
-                    deadlineDays: 0,
-                    actionText: 'Auditar contra Tesis de la SCJN',
-                    actionType: 'tesis',
-                    read: false
-                },
-                {
-                    id: 'notif_4',
-                    sender: 'TFJA - Segunda Sala Regional Metropolitana',
-                    badge: 'tfja',
-                    badgeText: 'TFJA',
-                    subject: 'Requerimiento de Exhibición de Pruebas Originales',
-                    time: formatTime(7),
-                    dateRaw: new Date().toISOString().split('T')[0],
-                    expediente: '26-0922-TFJA-04-1',
-                    cliente: getClient('MARLEX-HC'),
-                    cuerpo: 'La Magistrada Instructora previene a la actora para que en el término legal de tres días hábiles exhiba copia certificada del acta de entrega-recepción del Almacén Central Vallejo.',
-                    urgente: true,
-                    deadlineDays: 3,
-                    actionText: 'Calcular Vencimiento de Prevención',
-                    actionType: 'plazo',
-                    read: false
-                },
-                {
-                    id: 'notif_5',
-                    sender: 'Juzgado de Distrito en Materia Administrativa',
-                    badge: 'scjn',
-                    badgeText: 'Juzgado',
-                    subject: 'Suspensión Provisional de Inhabilitación en CompraNet',
-                    time: formatTime(9),
-                    dateRaw: new Date().toISOString().split('T')[0],
-                    expediente: 'Juicio de Amparo 1145/2026',
-                    cliente: 'Inmobiliaria del Centro S.A.',
-                    cuerpo: 'Se concede la suspensión provisional solicitada por la quejosa para efectos de que las dependencias se abstengan de publicar la inhabilitación decretada por la SFP.',
-                    urgente: false,
-                    deadlineDays: 0,
-                    actionText: 'Registrar en Expediente',
-                    actionType: 'redactar',
-                    read: false
                 }
             ];
 
@@ -3237,7 +3176,7 @@ ${this.documents.filter(d => d.cliente === key).map(d => `- [${d.tipo}](${d.arch
 
             this.renderNotifications();
             this.updateBadgeCount();
-            this.appendMessage('system', 'Sincronización del buzón completada. Se encontraron 4 notificaciones procesales críticas y 1 tesis relevante.');
+            this.appendMessage('system', 'Sincronización del buzón completada. Se encontraron 2 notificaciones procesales críticas.');
         }, 1500);
     }
 

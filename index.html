@@ -20,7 +20,7 @@
                     <img src="assets/avatar.png" alt="PROTOLEGAL Logo" class="app-logo">
                     <div class="logo-text">
                         <span class="logo-title">PROTOLEGAL</span>
-                        <span class="logo-subtitle">Agente Inteligente v1.2.2</span>
+                        <span class="logo-subtitle">Agente Inteligente v1.2.3</span>
                     </div>
                 </div>
             </div>
@@ -767,10 +767,13 @@
             // Asegurar que el buzón de correo inicie siempre vinculado de forma permanente
             localStorage.setItem('protolegal_email_connected', 'true');
             localStorage.setItem('protolegal_email_address', 'protolegal@outlook.es');
+            // Limpiar la acumulación de correos simulados del historial anterior
+            localStorage.removeItem('protolegal_notifications');
+            localStorage.removeItem('protolegal_unread_count');
         } catch (e) {
             console.warn("localStorage no disponible:", e);
         }
     </script>
-    <script src="app_v122.js"></script>
+    <script src="app_v123.js"></script>
 </body>
 </html>

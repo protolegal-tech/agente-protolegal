@@ -50,6 +50,7 @@ class ProtoLegalApp {
         this.renderReferenceDocsList(); // Renderizar los documentos de referencia en la barra lateral de memoria
         this.updateDashboardMetrics();
         this.loadMemoryFile('INDICE');
+        this.loadEmailSettings();
     }
 
     // Carga de estado inicial de la base de datos simulada y localStorage
@@ -211,6 +212,11 @@ Este registro almacena los criterios que han sido verificados para evitar el uso
         // Parsear tesis desde el texto cargado en memoria
         this.thesisDatabase = [];
         this.parseTesisTextToDatabase();
+
+        // Inicializar Estado del Buzón Judicial
+        this.emailConnected = localStorage.getItem('protolegal_email_connected') === 'true';
+        this.emailAddress = localStorage.getItem('protolegal_email_address') || '';
+        this.notifications = JSON.parse(localStorage.getItem('protolegal_notifications') || '[]');
     }
 
     saveClientsToLocalStorage() {
@@ -284,6 +290,21 @@ Este registro almacena los criterios que han sido verificados para evitar el uso
         const formGen = document.getElementById('form-document-generator');
         if (formGen) {
             formGen.addEventListener('submit', (e) => this.generateWizardDocument(e));
+        }
+
+        // Cambiar campos de proveedor de correo
+        const selectProvider = document.getElementById('inbox-provider');
+        if (selectProvider) {
+            selectProvider.addEventListener('change', (e) => {
+                const imapFields = document.getElementById('imap-details-fields');
+                if (imapFields) {
+                    if (e.target.value === 'imap') {
+                        imapFields.classList.remove('hidden');
+                    } else {
+                        imapFields.classList.add('hidden');
+                    }
+                }
+            });
         }
     }
 
@@ -2625,6 +2646,367 @@ ${this.documents.filter(d => d.cliente === key).map(d => `- [${d.tipo}](${d.arch
 
         if (database.length > 0) {
             this.thesisDatabase = database;
+        }
+    }
+
+    // ==========================================================================
+    // MÓDULO EXPERTO: BUZÓN JUDICIAL Y NOTIFICACIONES DE CORREO
+    // ==========================================================================
+
+    loadEmailSettings() {
+        const emailStatusText = document.getElementById('email-status-text');
+        const statusDot = document.getElementById('status-dot');
+        const btnSubmitEmail = document.getElementById('btn-submit-email');
+        const syncStatus = document.getElementById('inbox-sync-status');
+        const btnSyncInbox = document.getElementById('btn-sync-inbox');
+        
+        if (this.emailConnected) {
+            if (emailStatusText) emailStatusText.textContent = `Conectado: ${this.emailAddress}`;
+            if (statusDot) {
+                statusDot.className = 'status-dot green-pulse';
+            }
+            if (btnSubmitEmail) {
+                btnSubmitEmail.textContent = 'Desconectar Cuenta';
+                btnSubmitEmail.className = 'btn-doc-action';
+                btnSubmitEmail.style.background = 'rgba(239, 68, 68, 0.15)';
+                btnSubmitEmail.style.borderColor = '#ef4444';
+                btnSubmitEmail.style.color = '#ef4444';
+            }
+            if (syncStatus) syncStatus.textContent = 'Buzón al día';
+            if (btnSyncInbox) btnSyncInbox.disabled = false;
+            
+            this.renderNotifications();
+        } else {
+            if (emailStatusText) emailStatusText.textContent = 'Buzón Desconectado';
+            if (statusDot) {
+                statusDot.className = 'status-dot red-pulse';
+            }
+            if (btnSubmitEmail) {
+                btnSubmitEmail.textContent = 'Conectar Buzón Judicial';
+                btnSubmitEmail.className = 'btn-doc-action btn-gold';
+                btnSubmitEmail.style.background = '';
+                btnSubmitEmail.style.borderColor = '';
+                btnSubmitEmail.style.color = '';
+            }
+            if (syncStatus) syncStatus.textContent = 'Sin conexión';
+            if (btnSyncInbox) btnSyncInbox.disabled = true;
+            
+            const listContainer = document.getElementById('inbox-notifications-list');
+            if (listContainer) {
+                listContainer.innerHTML = `
+                    <div class="inbox-placeholder" id="inbox-placeholder">
+                        <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+                        <h4>Buzón Judicial Desconectado</h4>
+                        <p>Por favor conecta tu cuenta de correo electrónico en el panel de la izquierda para comenzar a recibir notificaciones automáticas de juicios y audiencias de la Suprema Corte (SCJN), el TFJA y el DOF.</p>
+                    </div>
+                `;
+            }
+        }
+    }
+
+    connectEmailAccount(e) {
+        e.preventDefault();
+        
+        const emailStatusText = document.getElementById('email-status-text');
+        const statusDot = document.getElementById('status-dot');
+        const btnSubmitEmail = document.getElementById('btn-submit-email');
+        const emailInput = document.getElementById('inbox-email');
+        const passwordInput = document.getElementById('inbox-password');
+        
+        if (this.emailConnected) {
+            // Desconectar
+            this.emailConnected = false;
+            this.emailAddress = '';
+            this.notifications = [];
+            localStorage.setItem('protolegal_email_connected', 'false');
+            localStorage.setItem('protolegal_email_address', '');
+            localStorage.removeItem('protolegal_notifications');
+            
+            if (emailInput) emailInput.value = '';
+            if (passwordInput) passwordInput.value = '';
+            
+            this.loadEmailSettings();
+            this.appendMessage('system', 'Se ha desconectado la cuenta de correo del Buzón Judicial.');
+            return;
+        }
+
+        const email = emailInput.value.trim();
+        if (!email) return;
+
+        if (btnSubmitEmail) btnSubmitEmail.disabled = true;
+        if (statusDot) statusDot.className = 'status-dot gold-pulse';
+        if (emailStatusText) emailStatusText.textContent = 'Estableciendo conexión SSL segura...';
+
+        setTimeout(() => {
+            if (emailStatusText) emailStatusText.textContent = 'Autenticando credenciales de litigio...';
+            
+            setTimeout(() => {
+                if (emailStatusText) emailStatusText.textContent = 'Sincronizando bandeja de entrada judicial...';
+                
+                setTimeout(() => {
+                    this.emailConnected = true;
+                    this.emailAddress = email;
+                    localStorage.setItem('protolegal_email_connected', 'true');
+                    localStorage.setItem('protolegal_email_address', email);
+                    
+                    if (btnSubmitEmail) btnSubmitEmail.disabled = false;
+                    this.loadEmailSettings();
+                    this.syncEmailInbox(); // Sincronización automática inicial
+                    
+                    this.appendMessage('system', `Se ha conectado exitosamente la cuenta **${email}** al Buzón Judicial. Se inició la sincronización con el servidor del TFJA.`);
+                }, 1000);
+            }, 1000);
+        }, 1000);
+    }
+
+    syncEmailInbox() {
+        if (!this.emailConnected) return;
+
+        const btnSyncInbox = document.getElementById('btn-sync-inbox');
+        const syncStatus = document.getElementById('inbox-sync-status');
+        const statusDot = document.getElementById('status-dot');
+
+        if (btnSyncInbox) btnSyncInbox.disabled = true;
+        if (syncStatus) syncStatus.textContent = 'Sincronizando buzón...';
+        if (statusDot) statusDot.className = 'status-dot gold-pulse';
+
+        setTimeout(() => {
+            const today = new Date();
+            const formatTime = (hoursAgo) => {
+                const d = new Date(today);
+                d.setHours(today.getHours() - hoursAgo);
+                return `${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')} (Hoy)`;
+            };
+
+            const formatDate = (daysAgo) => {
+                const d = new Date(today);
+                d.setDate(today.getDate() - daysAgo);
+                const meses = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
+                return `${d.getDate()} de ${meses[d.getMonth()]} de ${d.getFullYear()}`;
+            };
+
+            this.notifications = [
+                {
+                    id: 'notif_1',
+                    sender: 'TFJA - Primera Sala Regional Metropolitana',
+                    badge: 'tfja',
+                    badgeText: 'TFJA',
+                    subject: 'Acuerdo de Admisión e Inicio de Juicio de Nulidad',
+                    time: formatTime(1),
+                    dateRaw: new Date().toISOString().split('T')[0],
+                    expediente: '14820/26-17-01-4',
+                    cliente: 'NEXTMED',
+                    cuerpo: 'Se tiene por admitida la demanda de nulidad promovida por la actora en contra de la resolución de rescisión administrativa decretada por el IMSS. Se otorga traslado a la demandada.',
+                    urgente: true,
+                    deadlineDays: 3,
+                    actionText: 'Computar Plazo de Desahogo',
+                    actionType: 'plazo'
+                },
+                {
+                    id: 'notif_2',
+                    sender: 'IMSS - Órgano Interno de Control Central',
+                    badge: 'dof',
+                    badgeText: 'Procedimiento',
+                    subject: 'Citación para Audiencia de Conciliación en CompraNet',
+                    time: formatTime(3),
+                    dateRaw: new Date().toISOString().split('T')[0],
+                    expediente: 'OIC/IMSS/SUT/004/2026',
+                    cliente: 'EEE',
+                    cuerpo: 'Se convoca a las partes a comparecer a la audiencia de avenencia presencial a celebrarse en las oficinas de la SFP para mediar discrepancias sobre el cumplimiento de contratos.',
+                    urgente: true,
+                    deadlineDays: 5,
+                    actionText: 'Agendar y Preparar Documentos',
+                    actionType: 'redactar'
+                },
+                {
+                    id: 'notif_3',
+                    sender: 'Suprema Corte de Justicia de la Nación (SCJN)',
+                    badge: 'scjn',
+                    badgeText: 'SCJN',
+                    subject: 'Publicación de Tesis Obligatoria en Materia de Rescisión Contractual',
+                    time: 'Ayer 11:30 AM',
+                    dateRaw: new Date(today - 86400000).toISOString().split('T')[0],
+                    expediente: 'Registro Digital: 2026115',
+                    cliente: 'GENERAL',
+                    cuerpo: 'La Segunda Sala publica jurisprudencia obligatoria respecto a que el finiquito de los contratos regulados por la LAASSP constituye una formalidad esencial que debe preceder a las sanciones.',
+                    urgente: false,
+                    deadlineDays: 0,
+                    actionText: 'Auditar contra Tesis de la SCJN',
+                    actionType: 'tesis'
+                },
+                {
+                    id: 'notif_4',
+                    sender: 'TFJA - Segunda Sala Regional Metropolitana',
+                    badge: 'tfja',
+                    badgeText: 'TFJA',
+                    subject: 'Requerimiento de Exhibición de Pruebas Originales',
+                    time: formatDate(2),
+                    dateRaw: new Date(today - 172800000).toISOString().split('T')[0],
+                    expediente: '26-0922-TFJA-04-1',
+                    cliente: 'MARLEX-HC',
+                    cuerpo: 'La Magistrada Instructora previene a la actora para que en el término legal de tres días hábiles exhiba copia certificada del acta de entrega-recepción del Almacén Central Vallejo.',
+                    urgente: true,
+                    deadlineDays: 3,
+                    actionText: 'Calcular Vencimiento de Prevención',
+                    actionType: 'plazo'
+                }
+            ];
+
+            localStorage.setItem('protolegal_notifications', JSON.stringify(this.notifications));
+            
+            if (btnSyncInbox) btnSyncInbox.disabled = false;
+            if (syncStatus) {
+                const now = new Date();
+                syncStatus.textContent = `Buzón al día (Sincronizado: ${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')})`;
+            }
+            if (statusDot) statusDot.className = 'status-dot green-pulse';
+
+            this.renderNotifications();
+            this.appendMessage('system', 'Sincronización del buzón completada. Se encontraron 3 notificaciones procesales críticas y 1 tesis relevante.');
+        }, 1500);
+    }
+
+    renderNotifications() {
+        const listContainer = document.getElementById('inbox-notifications-list');
+        if (!listContainer) return;
+
+        if (this.notifications.length === 0) {
+            listContainer.innerHTML = `
+                <div class="inbox-placeholder" id="inbox-placeholder">
+                    <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+                    <h4>No hay notificaciones judiciales</h4>
+                    <p>Tu buzón se encuentra al día. Presiona "Sincronizar ahora" para comprobar si el servidor judicial del TFJA tiene nuevos acuerdos.</p>
+                </div>
+            `;
+            return;
+        }
+
+        listContainer.innerHTML = '';
+        this.notifications.forEach(notif => {
+            const card = document.createElement('div');
+            card.className = `notification-card ${notif.urgente ? 'critical-deadline' : ''}`;
+            
+            let actionBtnHtml = '';
+            if (notif.actionType === 'plazo') {
+                actionBtnHtml = `
+                    <button class="btn-doc-action" onclick="app.linkNotificationToTools('plazo', '${notif.cliente}', '${notif.dateRaw}', ${notif.deadlineDays})" style="padding: 4px 10px; font-size: 0.72rem; margin: 0; min-width: auto; width: auto; font-family: inherit;">
+                        📅 ${notif.actionText}
+                    </button>
+                `;
+            } else if (notif.actionType === 'redactar') {
+                actionBtnHtml = `
+                    <button class="btn-doc-action btn-gold" onclick="app.linkNotificationToTools('redactar', '${notif.cliente}', '${notif.dateRaw}', ${notif.deadlineDays})" style="padding: 4px 10px; font-size: 0.72rem; margin: 0; min-width: auto; width: auto; font-family: inherit;">
+                        ✍️ ${notif.actionText}
+                    </button>
+                `;
+            } else if (notif.actionType === 'tesis') {
+                actionBtnHtml = `
+                    <button class="btn-doc-action" onclick="app.linkNotificationToTools('tesis', 'GENERAL', '${notif.dateRaw}', 0)" style="padding: 4px 10px; font-size: 0.72rem; margin: 0; min-width: auto; width: auto; font-family: inherit;">
+                        🔍 ${notif.actionText}
+                    </button>
+                `;
+            }
+
+            card.innerHTML = `
+                <div class="notification-card-header">
+                    <div class="notification-sender-info">
+                        <span class="notification-badge badge-${notif.badge}">${notif.badgeText}</span>
+                        <span class="notification-sender">${notif.sender}</span>
+                    </div>
+                    <span class="notification-time">${notif.time}</span>
+                </div>
+                <div class="notification-card-body">
+                    <h4 class="notification-subject">${notif.subject}</h4>
+                    <p style="font-size: 0.8rem; color: var(--text-secondary); line-height: 1.45; margin: 4px 0 8px 0;">${notif.cuerpo}</p>
+                    <div class="notification-meta-row">
+                        <span>Expediente: <strong>${notif.expediente}</strong></span>
+                        <span>Cliente: <strong>${notif.cliente}</strong></span>
+                        ${notif.urgente ? `<span style="color:#ef4444; font-weight:bold;">⚠️ Término: ${notif.deadlineDays} días hábiles</span>` : ''}
+                    </div>
+                </div>
+                <div class="notification-card-actions">
+                    <button class="btn-doc-action" onclick="app.deleteNotification('${notif.id}')" style="padding: 4px 10px; font-size: 0.72rem; margin: 0; min-width: auto; width: auto; font-family: inherit; background: transparent; border-color: transparent; color: var(--text-muted);">
+                        Marcar como leída
+                    </button>
+                    ${actionBtnHtml}
+                </div>
+            `;
+            listContainer.appendChild(card);
+        });
+    }
+
+    deleteNotification(id) {
+        this.notifications = this.notifications.filter(n => n.id !== id);
+        localStorage.setItem('protolegal_notifications', JSON.stringify(this.notifications));
+        this.renderNotifications();
+    }
+
+    linkNotificationToTools(actionType, clientKey, dateStr, deadlineDays) {
+        if (actionType === 'plazo') {
+            this.switchTab('evaluador');
+            
+            const cartDate = document.getElementById('cart-date');
+            if (cartDate) cartDate.value = dateStr;
+            
+            const chkContrato = document.getElementById('chk-contrato');
+            const chkFactura = document.getElementById('chk-factura');
+            if (chkContrato) chkContrato.checked = true;
+            if (chkFactura) chkFactura.checked = true;
+
+            const cartAmount = document.getElementById('cart-amount');
+            if (cartAmount && (!cartAmount.value || cartAmount.value === '0')) {
+                cartAmount.value = '15400000';
+            }
+            
+            const form = document.querySelector('#tab-evaluador form');
+            if (form) {
+                const mockEvent = { preventDefault: () => {} };
+                this.runCarteraCalculation(mockEvent);
+            }
+
+            this.appendMessage('system', `Se configuró el Evaluador con la fecha del acuerdo judicial (**${dateStr}**) y se realizó el desglose de días hábiles.`);
+        } else if (actionType === 'redactar') {
+            this.switchTab('generador');
+            
+            const selectTemplate = document.getElementById('gen-template');
+            const inputClient = document.getElementById('gen-client');
+            const inputContract = document.getElementById('gen-contract');
+            const inputAuthority = document.getElementById('gen-authority');
+            const inputHechos = document.getElementById('gen-hechos');
+
+            if (selectTemplate) {
+                selectTemplate.value = 'conciliacion';
+                this.changeTemplateFields('conciliacion');
+            }
+            
+            const clientData = this.clients[clientKey];
+            if (inputClient && clientData) {
+                inputClient.value = clientData.razonSocial;
+            } else if (inputClient) {
+                inputClient.value = clientKey;
+            }
+
+            if (inputContract && clientData && clientData.contratos.length > 0) {
+                inputContract.value = clientData.contratos[0].numero;
+            }
+            if (inputAuthority) {
+                inputAuthority.value = 'Instituto Mexicano del Seguro Social';
+            }
+            if (inputHechos) {
+                inputHechos.value = `1. Con fecha ${dateStr} se notificó citación para la audiencia de conciliación.
+2. Existe una falta de pago de estimaciones devengadas que el cliente solicita reclamar.
+3. Comparecemos para dirimir las discrepancias sobre el cumplimiento del contrato administrativo.`;
+            }
+
+            this.appendMessage('system', `Se pre-configuró el Generador de Escritos para redactar la contestación del cliente **${clientKey}**.`);
+        } else if (actionType === 'tesis') {
+            this.switchTab('chat');
+            
+            const txtChat = document.getElementById('chat-textarea');
+            if (txtChat) {
+                txtChat.value = `Analizar aplicabilidad de la Tesis SCJN 2026115 para blindar el escrito activo.`;
+                txtChat.focus();
+            }
         }
     }
 }

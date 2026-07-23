@@ -2095,6 +2095,8 @@ ${this.documents.filter(d => d.cliente === key).map(d => `- [${d.tipo}](${d.arch
         this.closeProfileModal();
     }
 
+    loadUserProfile() {
+        const savedProfile = localStorage.getItem('protolegal_user_profile');
         let profile = null;
         if (savedProfile) {
             try {

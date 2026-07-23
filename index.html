@@ -763,10 +763,14 @@
     <script src="https://cdn.jsdelivr.net/npm/mammoth@1.12.0/mammoth.browser.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
     <script>
-        // Asegurar que el buzón de correo inicie siempre vinculado de forma permanente
-        localStorage.setItem('protolegal_email_connected', 'true');
-        localStorage.setItem('protolegal_email_address', 'protolegal@outlook.es');
+        try {
+            // Asegurar que el buzón de correo inicie siempre vinculado de forma permanente
+            localStorage.setItem('protolegal_email_connected', 'true');
+            localStorage.setItem('protolegal_email_address', 'protolegal@outlook.es');
+        } catch (e) {
+            console.warn("localStorage no disponible:", e);
+        }
     </script>
-    <script src="app.js?v=1.2.0"></script>
+    <script src="app.js?v=1.2.1"></script>
 </body>
 </html>

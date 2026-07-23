@@ -1,6 +1,41 @@
-/* ==========================================================================
-   PROTOLEGAL - JavaScript Application Engine
-   ========================================================================== */
+// Polyfill/Wrapper seguro para localStorage en entornos file:/// restrictivos
+(function() {
+    try {
+        localStorage.setItem('__protolegal_test_storage__', '1');
+        localStorage.removeItem('__protolegal_test_storage__');
+    } catch (e) {
+        console.warn("localStorage bloqueado por el navegador en file://. Usando almacenamiento en memoria temporal.");
+        const memoryStorage = {};
+        const mockStorage = {
+            getItem(key) {
+                return key in memoryStorage ? memoryStorage[key] : null;
+            },
+            setItem(key, value) {
+                memoryStorage[key] = String(value);
+            },
+            removeItem(key) {
+                delete memoryStorage[key];
+            },
+            clear() {
+                for (let key in memoryStorage) {
+                    delete memoryStorage[key];
+                }
+            },
+            key(index) {
+                const keys = Object.keys(memoryStorage);
+                return keys[index] || null;
+            },
+            get length() {
+                return Object.keys(memoryStorage).length;
+            }
+        };
+        Object.defineProperty(window, 'localStorage', {
+            value: mockStorage,
+            writable: true,
+            configurable: true
+        });
+    }
+})();
 
 class ProtoLegalApp {
     constructor() {

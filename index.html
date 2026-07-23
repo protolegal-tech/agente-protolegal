@@ -47,9 +47,10 @@
                     <svg viewBox="0 0 24 24" class="nav-icon"><path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H8V4h12v12z"/></svg>
                     <span>Sistema de Memoria</span>
                 </button>
-                <button class="nav-btn" data-tab="inbox" id="btn-tab-inbox">
+                <button class="nav-btn" data-tab="inbox" id="btn-tab-inbox" style="position: relative;">
                     <svg viewBox="0 0 24 24" class="nav-icon"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
                     <span>Buzón Judicial</span>
+                    <span class="badge-unread hidden" id="inbox-badge-count">0</span>
                 </button>
             </nav>
 
@@ -763,6 +764,9 @@
             </form>
         </div>
     </div>
+
+    <!-- Contenedor de Notificaciones Flotantes (Toasts) -->
+    <div id="toast-container" style="position: fixed; top: 20px; right: 20px; z-index: 10000; display: flex; flex-direction: column; gap: 10px; max-width: 350px; pointer-events: none;"></div>
 
     <!-- Scripts de la Aplicación -->
     <script src="https://cdn.jsdelivr.net/npm/mammoth@1.12.0/mammoth.browser.min.js"></script>

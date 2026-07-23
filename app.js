@@ -213,10 +213,19 @@ Este registro almacena los criterios que han sido verificados para evitar el uso
         this.thesisDatabase = [];
         this.parseTesisTextToDatabase();
 
-        // Inicializar Estado del Buzón Judicial
-        this.emailConnected = localStorage.getItem('protolegal_email_connected') === 'true';
-        this.emailAddress = localStorage.getItem('protolegal_email_address') || '';
+        // Inicializar Estado del Buzón Judicial (predeterminado: conectado a contacto@protolegal-tech.com)
+        const isEmailConnectedLocal = localStorage.getItem('protolegal_email_connected');
+        if (isEmailConnectedLocal === null) {
+            this.emailConnected = true;
+            this.emailAddress = 'contacto@protolegal-tech.com';
+            localStorage.setItem('protolegal_email_connected', 'true');
+            localStorage.setItem('protolegal_email_address', this.emailAddress);
+        } else {
+            this.emailConnected = isEmailConnectedLocal === 'true';
+            this.emailAddress = localStorage.getItem('protolegal_email_address') || '';
+        }
         this.notifications = JSON.parse(localStorage.getItem('protolegal_notifications') || '[]');
+        this.unreadNotificationsCount = parseInt(localStorage.getItem('protolegal_unread_count') || '0');
     }
 
     saveClientsToLocalStorage() {
@@ -325,6 +334,13 @@ Este registro almacena los criterios que han sido verificados para evitar el uso
         // Si se cambia a la pestaña del chat y hay un documento, asegurar el visor
         if (tabId === 'chat') {
             this.syncDocumentView();
+        }
+
+        // Si se entra al Buzón Judicial, marcar notificaciones como leídas
+        if (tabId === 'inbox') {
+            this.unreadNotificationsCount = 0;
+            localStorage.setItem('protolegal_unread_count', '0');
+            this.updateBadgeCount();
         }
     }
 
@@ -2676,6 +2692,8 @@ ${this.documents.filter(d => d.cliente === key).map(d => `- [${d.tipo}](${d.arch
             if (btnSyncInbox) btnSyncInbox.disabled = false;
             
             this.renderNotifications();
+            this.updateBadgeCount();
+            this.startBackgroundSyncTimer();
         } else {
             if (emailStatusText) emailStatusText.textContent = 'Buzón Desconectado';
             if (statusDot) {
@@ -2701,7 +2719,161 @@ ${this.documents.filter(d => d.cliente === key).map(d => `- [${d.tipo}](${d.arch
                     </div>
                 `;
             }
+
+            this.unreadNotificationsCount = 0;
+            localStorage.setItem('protolegal_unread_count', '0');
+            this.updateBadgeCount();
+            if (this.backgroundSyncInterval) {
+                clearInterval(this.backgroundSyncInterval);
+                this.backgroundSyncInterval = null;
+            }
         }
+    }
+
+    updateBadgeCount() {
+        const badge = document.getElementById('inbox-badge-count');
+        if (!badge) return;
+
+        if (this.unreadNotificationsCount > 0) {
+            badge.textContent = this.unreadNotificationsCount;
+            badge.classList.remove('hidden');
+        } else {
+            badge.classList.add('hidden');
+        }
+    }
+
+    showToastNotification(title, message, onClickCallback) {
+        const container = document.getElementById('toast-container');
+        if (!container) return;
+
+        const toast = document.createElement('div');
+        toast.className = 'toast-notification';
+        toast.innerHTML = `
+            <div class="toast-icon">🔔</div>
+            <div class="toast-body" style="display:flex; flex-direction:column; gap:2px;">
+                <strong style="font-size:0.82rem; color:var(--text-primary); font-weight:600;">${title}</strong>
+                <span style="font-size:0.75rem; color:var(--text-secondary); line-height:1.3;">${message}</span>
+            </div>
+        `;
+
+        if (onClickCallback) {
+            toast.addEventListener('click', () => {
+                onClickCallback();
+                toast.remove();
+            });
+        }
+
+        setTimeout(() => {
+            if (toast.parentNode) {
+                toast.style.animation = 'fadeOutToast 0.4s ease forwards';
+                setTimeout(() => toast.remove(), 400);
+            }
+        }, 5000);
+
+        container.appendChild(toast);
+    }
+
+    startBackgroundSyncTimer() {
+        if (this.backgroundSyncInterval) return;
+
+        // Primera llegada a los 15 segundos
+        setTimeout(() => {
+            this.receiveSimulatedNewEmail();
+        }, 15000);
+
+        // Intervalo de 60 segundos
+        this.backgroundSyncInterval = setInterval(() => {
+            this.receiveSimulatedNewEmail();
+        }, 60000);
+    }
+
+    receiveSimulatedNewEmail() {
+        if (!this.emailConnected) return;
+
+        const pool = [
+            {
+                sender: 'TFJA - Tercera Sala Regional Metropolitana',
+                badge: 'tfja',
+                badgeText: 'TFJA',
+                subject: 'Acuerdo de Radicación de Recurso de Apelación',
+                expediente: '16921/26-17-03-9',
+                cliente: 'ASPID',
+                cuerpo: 'Se notifica acuerdo admisorio del recurso de apelación interpuesto por la representación legal de ASPID en contra de la multa de COFEPRIS.',
+                urgente: true,
+                deadlineDays: 3,
+                actionText: 'Computar Plazo de Desahogo',
+                actionType: 'plazo'
+            },
+            {
+                sender: 'Diario Oficial de la Federación (DOF)',
+                badge: 'dof',
+                badgeText: 'DOF',
+                subject: 'Reforma a la Ley de Adquisiciones (LAASSP)',
+                expediente: 'Decreto Oficial',
+                cliente: 'GENERAL',
+                cuerpo: 'Publicación de reforma al artículo 15 de la LAASSP que flexibiliza las garantías de cumplimiento para licitantes del sector salud.',
+                urgente: false,
+                deadlineDays: 0,
+                actionText: 'Auditar Contra Nueva Reforma',
+                actionType: 'tesis'
+            },
+            {
+                sender: 'Tribunal Colegiado en Materia Administrativa',
+                badge: 'scjn',
+                badgeText: 'Colegiado',
+                subject: 'Notificación de Concesión de Amparo e Invalidez de Inhabilitación',
+                expediente: 'Amparo D.A. 482/2026',
+                cliente: 'MARLEX-HC',
+                cuerpo: 'El Tribunal Colegiado resuelve conceder amparo liso y llano a la quejosa, ordenando dejar sin efectos la inhabilitación del IMSS en CompraNet.',
+                urgente: true,
+                deadlineDays: 15,
+                actionText: 'Registrar Sentencia en Memoria',
+                actionType: 'redactar'
+            }
+        ];
+
+        const index = Math.floor(Math.random() * pool.length);
+        const template = pool[index];
+        
+        const now = new Date();
+        const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')} (Hoy)`;
+        
+        const newNotif = {
+            id: 'notif_bg_' + Date.now(),
+            sender: template.sender,
+            badge: template.badge,
+            badgeText: template.badgeText,
+            subject: template.subject,
+            time: timeStr,
+            dateRaw: now.toISOString().split('T')[0],
+            expediente: template.expediente,
+            cliente: template.cliente,
+            cuerpo: template.cuerpo,
+            urgente: template.urgente,
+            deadlineDays: template.deadlineDays,
+            actionText: template.actionText,
+            actionType: template.actionType
+        };
+
+        this.notifications.unshift(newNotif);
+        this.unreadNotificationsCount++;
+        
+        localStorage.setItem('protolegal_notifications', JSON.stringify(this.notifications));
+        localStorage.setItem('protolegal_unread_count', this.unreadNotificationsCount.toString());
+
+        this.updateBadgeCount();
+        
+        if (this.activeTab === 'inbox') {
+            this.renderNotifications();
+        }
+
+        this.showToastNotification(
+            `📬 ${newNotif.sender}`,
+            `${newNotif.subject} (${newNotif.cliente})`,
+            () => {
+                this.switchTab('inbox');
+            }
+        );
     }
 
     connectEmailAccount(e) {
@@ -2714,7 +2886,6 @@ ${this.documents.filter(d => d.cliente === key).map(d => `- [${d.tipo}](${d.arch
         const passwordInput = document.getElementById('inbox-password');
         
         if (this.emailConnected) {
-            // Desconectar
             this.emailConnected = false;
             this.emailAddress = '';
             this.notifications = [];
@@ -2751,7 +2922,7 @@ ${this.documents.filter(d => d.cliente === key).map(d => `- [${d.tipo}](${d.arch
                     
                     if (btnSubmitEmail) btnSubmitEmail.disabled = false;
                     this.loadEmailSettings();
-                    this.syncEmailInbox(); // Sincronización automática inicial
+                    this.syncEmailInbox();
                     
                     this.appendMessage('system', `Se ha conectado exitosamente la cuenta **${email}** al Buzón Judicial. Se inició la sincronización con el servidor del TFJA.`);
                 }, 1000);

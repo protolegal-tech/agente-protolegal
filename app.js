@@ -645,7 +645,20 @@ REGLAS DE OPERACIÓN IMPORTANTES:
                 console.error("API Call failed:", err);
                 const loaderEl = document.getElementById('chat-loading-indicator');
                 if (loaderEl) loaderEl.remove();
-                this.appendMessage('agent', `**[Error de Conexión]** Ocurrió un error al contactar la API de Gemini: *${err.message}*. Por favor revisa que tu clave API sea válida en tus configuraciones de perfil.`);
+                
+                let errorMsg = `**[Error de Conexión]** Ocurrió un error al contactar la API de Gemini: *${err.message}*.`;
+                
+                if (window.location.protocol === 'file:') {
+                    errorMsg += `\n\n💡 **Detección de Protocolo Local (file:///):** Al ejecutar el agente directamente desde un archivo en tu disco duro, los navegadores modernos pueden bloquear las peticiones a la API de Gemini por políticas de seguridad (CORS).
+                    \n\n**Para solucionarlo:**
+                    \n1. Abre tu agente desde la dirección web que creamos en **GitHub Pages** (donde corre de forma segura y libre de este bloqueo).
+                    \n2. O levanta un servidor de desarrollo local en esta carpeta (ej. con la extensión Live Server de VS Code, o abriendo CMD aquí y ejecutando \`npx http-server\`).
+                    \n3. Si no tienes internet o prefieres no usar la API de Gemini, puedes borrar la Clave API en la configuración de tu perfil para reactivar el **Motor Local Asistente** offline.`;
+                } else {
+                    errorMsg += `\n\nPor favor revisa que tu clave API sea válida en tus configuraciones de perfil y que tengas conexión a internet.`;
+                }
+                
+                this.appendMessage('agent', errorMsg);
             }
         } else {
             // Fallback: Motor local inteligente (si no hay clave API configurada)
@@ -1968,7 +1981,7 @@ ${this.documents.filter(d => d.cliente === key).map(d => `- [${d.tipo}](${d.arch
         if (savedProfile) {
             const profile = JSON.parse(savedProfile);
             this.applyUserProfile(profile);
-            this.geminiApiKey = profile.apiKey || 'AQ.Ab8RN6JViX42bfngwEg4GyNmb4kJkT-7uPHTzin_a1UPkiSK4Q';
+            this.geminiApiKey = profile.apiKey || '';
         } else {
             // Valores por defecto exigidos
             const defaultProfile = {

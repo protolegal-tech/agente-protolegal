@@ -2678,25 +2678,58 @@ ${this.documents.filter(d => d.cliente === key).map(d => `- [${d.tipo}](${d.arch
     loadEmailSettings() {
         const emailStatusText = document.getElementById('email-status-text');
         const statusDot = document.getElementById('status-dot');
-        const btnSubmitEmail = document.getElementById('btn-submit-email');
         const syncStatus = document.getElementById('inbox-sync-status');
         const btnSyncInbox = document.getElementById('btn-sync-inbox');
+        const connectionPanel = document.getElementById('email-connection-panel');
         
         if (this.emailConnected) {
             if (emailStatusText) emailStatusText.textContent = `Conectado: ${this.emailAddress}`;
             if (statusDot) {
                 statusDot.className = 'status-dot green-pulse';
             }
-            if (btnSubmitEmail) {
-                btnSubmitEmail.textContent = 'Desconectar Cuenta';
-                btnSubmitEmail.className = 'btn-doc-action';
-                btnSubmitEmail.style.background = 'rgba(239, 68, 68, 0.15)';
-                btnSubmitEmail.style.borderColor = '#ef4444';
-                btnSubmitEmail.style.color = '#ef4444';
-            }
             if (syncStatus) syncStatus.textContent = 'Buzón al día';
             if (btnSyncInbox) btnSyncInbox.disabled = false;
             
+            // Renderizar Tarjeta de Estado Activo para ocultar los inputs de email y contraseña
+            if (connectionPanel) {
+                connectionPanel.innerHTML = `
+                    <div style="background: rgba(212, 175, 55, 0.05); border: 1px solid rgba(212, 175, 55, 0.2); border-radius: 8px; padding: 18px; display: flex; flex-direction: column; gap: 14px; margin-top: 10px;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <div style="font-size: 1.8rem;">🔒</div>
+                            <div style="display: flex; flex-direction: column; gap: 2px;">
+                                <strong style="font-size: 0.85rem; color: var(--color-gold); font-weight: 600;">Buzón Vinculado</strong>
+                                <span style="font-size: 0.72rem; color: var(--text-muted);">Sincronización activa al 100%</span>
+                            </div>
+                        </div>
+                        
+                        <div style="border-top: 1px solid rgba(255,255,255,0.05); padding-top: 12px; display: flex; flex-direction: column; gap: 8px;">
+                            <div style="display: flex; justify-content: space-between; font-size: 0.75rem;">
+                                <span style="color: var(--text-secondary);">Dirección:</span>
+                                <strong style="color: var(--text-primary); font-family: monospace;">${this.emailAddress}</strong>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; font-size: 0.75rem;">
+                                <span style="color: var(--text-secondary);">Servidor:</span>
+                                <strong style="color: var(--text-primary);">imap-mail.outlook.com</strong>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; font-size: 0.75rem;">
+                                <span style="color: var(--text-secondary);">Protocolo:</span>
+                                <strong style="color: var(--text-primary);">IMAP / SSL (Puerto 993)</strong>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; font-size: 0.75rem;">
+                                <span style="color: var(--text-secondary);">Estado de Red:</span>
+                                <strong style="color: #10b981; display: flex; align-items: center; gap: 4px;">
+                                    <span style="display:inline-block; width: 6px; height: 6px; border-radius: 50%; background: #10b981;"></span> Sincronizado
+                                </strong>
+                            </div>
+                        </div>
+
+                        <button onclick="app.disconnectEmailAccount()" class="btn-doc-action" style="width: 100%; margin-top: 5px; background: rgba(239, 68, 68, 0.15); border-color: #ef4444; color: #ef4444; transition: all 0.2s;">
+                            Desvincular Cuenta
+                        </button>
+                    </div>
+                `;
+            }
+
             if (this.notifications.length === 0) {
                 setTimeout(() => this.syncEmailInbox(), 500);
             } else {
@@ -2709,16 +2742,66 @@ ${this.documents.filter(d => d.cliente === key).map(d => `- [${d.tipo}](${d.arch
             if (statusDot) {
                 statusDot.className = 'status-dot red-pulse';
             }
-            if (btnSubmitEmail) {
-                btnSubmitEmail.textContent = 'Conectar Buzón Judicial';
-                btnSubmitEmail.className = 'btn-doc-action btn-gold';
-                btnSubmitEmail.style.background = '';
-                btnSubmitEmail.style.borderColor = '';
-                btnSubmitEmail.style.color = '';
-            }
             if (syncStatus) syncStatus.textContent = 'Sin conexión';
             if (btnSyncInbox) btnSyncInbox.disabled = true;
             
+            // Renderizar Formulario de Conexión vacío
+            if (connectionPanel) {
+                connectionPanel.innerHTML = `
+                    <form id="form-email-config" onsubmit="app.connectEmailAccount(event)">
+                        <div class="form-group">
+                            <label for="inbox-provider">Proveedor de Correo:</label>
+                            <select id="inbox-provider" class="form-control" style="background: rgba(0,0,0,0.3); border: 1px solid var(--border-glass); color: var(--text-primary); border-radius: 6px; padding: 10px; width: 100%;">
+                                <option value="outlook">Microsoft Outlook / Office 365</option>
+                                <option value="tfja">Servidor Notificaciones TFJA (@tfja.gob.mx)</option>
+                                <option value="gmail">Google Gmail / G-Suite</option>
+                                <option value="imap">Servidor de Correo Privado (IMAP/SSL)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="inbox-email">Correo Electrónico:</label>
+                            <input type="email" id="inbox-email" placeholder="ej. notificaciones@tufirma.com" required style="background: rgba(0,0,0,0.3); border: 1px solid var(--border-glass); color: var(--text-primary); border-radius: 6px; padding: 10px; width: 100%;">
+                        </div>
+                        <div class="form-group" id="group-password">
+                            <label for="inbox-password">Contraseña o Contraseña de Aplicación:</label>
+                            <input type="password" id="inbox-password" placeholder="••••••••••••••••" required style="background: rgba(0,0,0,0.3); border: 1px solid var(--border-glass); color: var(--text-primary); border-radius: 6px; padding: 10px; width: 100%;">
+                        </div>
+                        <div id="imap-details-fields" class="hidden">
+                            <div class="form-group">
+                                <label for="inbox-host">Servidor IMAP:</label>
+                                <input type="text" id="inbox-host" placeholder="imap.tufirma.com" style="background: rgba(0,0,0,0.3); border: 1px solid var(--border-glass); color: var(--text-primary); border-radius: 6px; padding: 10px; width: 100%;">
+                            </div>
+                            <div class="form-group">
+                                <label for="inbox-port">Puerto IMAP:</label>
+                                <input type="number" id="inbox-port" placeholder="993" style="background: rgba(0,0,0,0.3); border: 1px solid var(--border-glass); color: var(--text-primary); border-radius: 6px; padding: 10px; width: 100%;">
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn-doc-action btn-gold" id="btn-submit-email" style="width: 100%; margin-top: 15px; height: 42px;">Conectar Buzón Judicial</button>
+                    </form>
+
+                    <div class="security-notice" style="margin-top: 20px;">
+                        <svg viewBox="0 0 24 24" style="width:16px; height:16px; fill:#d4af37;"><path d="M12 2C9.24 2 7 4.24 7 7v3H6c-1.1 0-2 .9-2 2v8c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2v-8c0-1.1-.9-2-2-2h-1V7c0-2.76-2.24-5-5-5zm-3 5c0-1.66 1.34-3 3-3s3 1.34 3 3v3H9V7zm3 9c-.55 0-1-.45-1-1v-2c0-.55.45-1 1-1s1 .45 1 1v2c0 .55-.45 1-1 1z"/></svg>
+                        <span><strong>Privacidad garantizada:</strong> Las credenciales se almacenan de forma local y nunca salen de tu PC.</span>
+                    </div>
+                `;
+                
+                // Vincular eventos DOM del nuevo selector de proveedor
+                const selectProvider = document.getElementById('inbox-provider');
+                if (selectProvider) {
+                    selectProvider.addEventListener('change', (e) => {
+                        const imapFields = document.getElementById('imap-details-fields');
+                        if (imapFields) {
+                            if (e.target.value === 'imap') {
+                                imapFields.classList.remove('hidden');
+                            } else {
+                                imapFields.classList.add('hidden');
+                            }
+                        }
+                    });
+                }
+            }
+
             const listContainer = document.getElementById('inbox-notifications-list');
             if (listContainer) {
                 listContainer.innerHTML = `

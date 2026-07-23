@@ -2642,34 +2642,7 @@ ${this.documents.filter(d => d.cliente === key).map(d => `- [${d.tipo}](${d.arch
                     rubro = clean.replace(/^rubro:\s*\**\s*/i, '').replace(/\**$/, '').trim();
                 } else if (clean.toLowerCase().startsWith('instancia/vigencia:')) {
                     const parts = clean.replace(/^instancia\/vigencia:\s*\**\s*/i, '').replace(/\**$/, '').trim();
-                    const pubMatch = parts.match(/\(Publicado:\s*([^\)]+)\)/i);
-                    if (pubMatch) {
-                        publicacion = pubMatch[1];
-                        vigencia = parts.replace(/\(Publicado:\s*([^\)]+)\)/i, '').trim();
-                    } else {
-                        vigencia = parts;
-                    }
-                }
-            });
-
-            database.push({
-                registro,
-                rubro,
-                vigencia,
-                publicacion
-            });
-        });
-
-        if (database.length > 0) {
-            this.thesisDatabase = database;
-        }
-    }
-
-    // ==========================================================================
-    // MÓDULO EXPERTO: BUZÓN JUDICIAL Y NOTIFICACIONES DE CORREO
-    // ==========================================================================
-
-    loadEmailSettings() {
+                    const pubM    loadEmailSettings() {
         const emailStatusText = document.getElementById('email-status-text');
         const statusDot = document.getElementById('status-dot');
         const btnSubmitEmail = document.getElementById('btn-submit-email');
@@ -2731,11 +2704,12 @@ ${this.documents.filter(d => d.cliente === key).map(d => `- [${d.tipo}](${d.arch
     }
 
     updateBadgeCount() {
+        const count = this.notifications.filter(n => !n.read).length;
         const badge = document.getElementById('inbox-badge-count');
         if (!badge) return;
 
-        if (this.unreadNotificationsCount > 0) {
-            badge.textContent = this.unreadNotificationsCount;
+        if (count > 0) {
+            badge.textContent = count;
             badge.classList.remove('hidden');
         } else {
             badge.classList.add('hidden');
@@ -2852,15 +2826,13 @@ ${this.documents.filter(d => d.cliente === key).map(d => `- [${d.tipo}](${d.arch
             urgente: template.urgente,
             deadlineDays: template.deadlineDays,
             actionText: template.actionText,
-            actionType: template.actionType
+            actionType: template.actionType,
+            read: false
         };
 
         this.notifications.unshift(newNotif);
-        this.unreadNotificationsCount++;
         
         localStorage.setItem('protolegal_notifications', JSON.stringify(this.notifications));
-        localStorage.setItem('protolegal_unread_count', this.unreadNotificationsCount.toString());
-
         this.updateBadgeCount();
         
         if (this.activeTab === 'inbox') {
@@ -2971,7 +2943,8 @@ ${this.documents.filter(d => d.cliente === key).map(d => `- [${d.tipo}](${d.arch
                     urgente: true,
                     deadlineDays: 3,
                     actionText: 'Computar Plazo de Desahogo',
-                    actionType: 'plazo'
+                    actionType: 'plazo',
+                    read: false
                 },
                 {
                     id: 'notif_2',
@@ -2987,7 +2960,8 @@ ${this.documents.filter(d => d.cliente === key).map(d => `- [${d.tipo}](${d.arch
                     urgente: true,
                     deadlineDays: 5,
                     actionText: 'Agendar y Preparar Documentos',
-                    actionType: 'redactar'
+                    actionType: 'redactar',
+                    read: false
                 },
                 {
                     id: 'notif_3',
@@ -3003,7 +2977,8 @@ ${this.documents.filter(d => d.cliente === key).map(d => `- [${d.tipo}](${d.arch
                     urgente: false,
                     deadlineDays: 0,
                     actionText: 'Auditar contra Tesis de la SCJN',
-                    actionType: 'tesis'
+                    actionType: 'tesis',
+                    read: false
                 },
                 {
                     id: 'notif_4',
@@ -3019,7 +2994,8 @@ ${this.documents.filter(d => d.cliente === key).map(d => `- [${d.tipo}](${d.arch
                     urgente: true,
                     deadlineDays: 3,
                     actionText: 'Calcular Vencimiento de Prevención',
-                    actionType: 'plazo'
+                    actionType: 'plazo',
+                    read: false
                 }
             ];
 
@@ -3033,6 +3009,7 @@ ${this.documents.filter(d => d.cliente === key).map(d => `- [${d.tipo}](${d.arch
             if (statusDot) statusDot.className = 'status-dot green-pulse';
 
             this.renderNotifications();
+            this.updateBadgeCount();
             this.appendMessage('system', 'Sincronización del buzón completada. Se encontraron 3 notificaciones procesales críticas y 1 tesis relevante.');
         }, 1500);
     }
@@ -3053,63 +3030,144 @@ ${this.documents.filter(d => d.cliente === key).map(d => `- [${d.tipo}](${d.arch
         }
 
         listContainer.innerHTML = '';
-        this.notifications.forEach(notif => {
-            const card = document.createElement('div');
-            card.className = `notification-card ${notif.urgente ? 'critical-deadline' : ''}`;
-            
-            let actionBtnHtml = '';
-            if (notif.actionType === 'plazo') {
-                actionBtnHtml = `
-                    <button class="btn-doc-action" onclick="app.linkNotificationToTools('plazo', '${notif.cliente}', '${notif.dateRaw}', ${notif.deadlineDays})" style="padding: 4px 10px; font-size: 0.72rem; margin: 0; min-width: auto; width: auto; font-family: inherit;">
-                        📅 ${notif.actionText}
-                    </button>
-                `;
-            } else if (notif.actionType === 'redactar') {
-                actionBtnHtml = `
-                    <button class="btn-doc-action btn-gold" onclick="app.linkNotificationToTools('redactar', '${notif.cliente}', '${notif.dateRaw}', ${notif.deadlineDays})" style="padding: 4px 10px; font-size: 0.72rem; margin: 0; min-width: auto; width: auto; font-family: inherit;">
-                        ✍️ ${notif.actionText}
-                    </button>
-                `;
-            } else if (notif.actionType === 'tesis') {
-                actionBtnHtml = `
-                    <button class="btn-doc-action" onclick="app.linkNotificationToTools('tesis', 'GENERAL', '${notif.dateRaw}', 0)" style="padding: 4px 10px; font-size: 0.72rem; margin: 0; min-width: auto; width: auto; font-family: inherit;">
-                        🔍 ${notif.actionText}
-                    </button>
-                `;
-            }
 
-            card.innerHTML = `
-                <div class="notification-card-header">
-                    <div class="notification-sender-info">
-                        <span class="notification-badge badge-${notif.badge}">${notif.badgeText}</span>
-                        <span class="notification-sender">${notif.sender}</span>
-                    </div>
-                    <span class="notification-time">${notif.time}</span>
-                </div>
-                <div class="notification-card-body">
-                    <h4 class="notification-subject">${notif.subject}</h4>
-                    <p style="font-size: 0.8rem; color: var(--text-secondary); line-height: 1.45; margin: 4px 0 8px 0;">${notif.cuerpo}</p>
-                    <div class="notification-meta-row">
-                        <span>Expediente: <strong>${notif.expediente}</strong></span>
-                        <span>Cliente: <strong>${notif.cliente}</strong></span>
-                        ${notif.urgente ? `<span style="color:#ef4444; font-weight:bold;">⚠️ Término: ${notif.deadlineDays} días hábiles</span>` : ''}
-                    </div>
-                </div>
-                <div class="notification-card-actions">
-                    <button class="btn-doc-action" onclick="app.deleteNotification('${notif.id}')" style="padding: 4px 10px; font-size: 0.72rem; margin: 0; min-width: auto; width: auto; font-family: inherit; background: transparent; border-color: transparent; color: var(--text-muted);">
-                        Marcar como leída
-                    </button>
-                    ${actionBtnHtml}
-                </div>
-            `;
-            listContainer.appendChild(card);
-        });
+        const unreadNotifs = this.notifications.filter(n => !n.read);
+        const readNotifs = this.notifications.filter(n => n.read);
+
+        // Renderizar No Leídas (Pendientes)
+        if (unreadNotifs.length > 0) {
+            const pendingTitle = document.createElement('div');
+            pendingTitle.style.cssText = 'font-size: 0.8rem; font-weight: 600; text-transform: uppercase; color: var(--color-gold); letter-spacing: 0.5px; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;';
+            pendingTitle.innerHTML = `<span>🔴 Notificaciones Pendientes (${unreadNotifs.length})</span>`;
+            listContainer.appendChild(pendingTitle);
+
+            unreadNotifs.forEach(notif => {
+                const card = this.createNotificationCardElement(notif);
+                listContainer.appendChild(card);
+            });
+        } else {
+            const pendingPlaceholder = document.createElement('div');
+            pendingPlaceholder.style.cssText = 'padding: 15px; text-align: center; background: rgba(255,255,255,0.01); border: 1px dashed var(--border-glass); border-radius: 6px; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 20px;';
+            pendingPlaceholder.textContent = 'No tienes notificaciones pendientes. ¡Bandeja de entrada al día!';
+            listContainer.appendChild(pendingPlaceholder);
+        }
+
+        // Renderizar Leídas (Historial)
+        if (readNotifs.length > 0) {
+            const readTitle = document.createElement('div');
+            readTitle.style.cssText = 'font-size: 0.8rem; font-weight: 600; text-transform: uppercase; color: var(--text-secondary); letter-spacing: 0.5px; margin: 24px 0 12px 0; border-top: 1px solid var(--border-glass); padding-top: 16px; display: flex; align-items: center; gap: 8px;';
+            readTitle.innerHTML = `<span>📁 Historial de Leídas (${readNotifs.length})</span>`;
+            listContainer.appendChild(readTitle);
+
+            readNotifs.forEach(notif => {
+                const card = this.createNotificationCardElement(notif);
+                listContainer.appendChild(card);
+            });
+        }
     }
 
-    deleteNotification(id) {
-        this.notifications = this.notifications.filter(n => n.id !== id);
-        localStorage.setItem('protolegal_notifications', JSON.stringify(this.notifications));
-        this.renderNotifications();
+    createNotificationCardElement(notif) {
+        const card = document.createElement('div');
+        
+        if (notif.read) {
+            card.className = 'notification-card';
+            card.style.opacity = '0.6';
+            card.style.borderLeftColor = 'var(--border-glass)';
+        } else {
+            card.className = `notification-card ${notif.urgente ? 'critical-deadline' : ''}`;
+        }
+        
+        let actionBtnHtml = '';
+        if (notif.actionType === 'plazo') {
+            actionBtnHtml = `
+                <button class="btn-doc-action" onclick="app.linkNotificationToTools('plazo', '${notif.cliente}', '${notif.dateRaw}', ${notif.deadlineDays})" style="padding: 4px 10px; font-size: 0.72rem; margin: 0; min-width: auto; width: auto; font-family: inherit;">
+                    📅 ${notif.actionText}
+                </button>
+            `;
+        } else if (notif.actionType === 'redactar') {
+            actionBtnHtml = `
+                <button class="btn-doc-action btn-gold" onclick="app.linkNotificationToTools('redactar', '${notif.cliente}', '${notif.dateRaw}', ${notif.deadlineDays})" style="padding: 4px 10px; font-size: 0.72rem; margin: 0; min-width: auto; width: auto; font-family: inherit;">
+                    ✍️ ${notif.actionText}
+                </button>
+            `;
+        } else if (notif.actionType === 'tesis') {
+            actionBtnHtml = `
+                <button class="btn-doc-action" onclick="app.linkNotificationToTools('tesis', 'GENERAL', '${notif.dateRaw}', 0)" style="padding: 4px 10px; font-size: 0.72rem; margin: 0; min-width: auto; width: auto; font-family: inherit;">
+                    🔍 ${notif.actionText}
+                </button>
+            `;
+        }
+
+        let readBtnHtml = '';
+        if (notif.read) {
+            readBtnHtml = `
+                <button class="btn-doc-action" onclick="app.markAsUnread('${notif.id}')" style="padding: 4px 10px; font-size: 0.72rem; margin: 0; min-width: auto; width: auto; font-family: inherit; background: transparent; border-color: transparent; color: var(--color-gold-dim);">
+                    Marcar como pendiente
+                </button>
+                <button class="btn-doc-action" onclick="app.deleteNotificationPermanently('${notif.id}')" style="padding: 4px 10px; font-size: 0.72rem; margin: 0; min-width: auto; width: auto; font-family: inherit; background: transparent; border-color: transparent; color: #ef4444;">
+                    Eliminar
+                </button>
+            `;
+        } else {
+            readBtnHtml = `
+                <button class="btn-doc-action" onclick="app.markAsRead('${notif.id}')" style="padding: 4px 10px; font-size: 0.72rem; margin: 0; min-width: auto; width: auto; font-family: inherit; background: transparent; border-color: transparent; color: var(--text-muted);">
+                    Marcar como leída
+                </button>
+            `;
+        }
+
+        card.innerHTML = `
+            <div class="notification-card-header">
+                <div class="notification-sender-info">
+                    <span class="notification-badge badge-${notif.badge}">${notif.badgeText}</span>
+                    <span class="notification-sender">${notif.sender}</span>
+                </div>
+                <span class="notification-time">${notif.time}</span>
+            </div>
+            <div class="notification-card-body">
+                <h4 class="notification-subject">${notif.subject}</h4>
+                <p style="font-size: 0.8rem; color: var(--text-secondary); line-height: 1.45; margin: 4px 0 8px 0;">${notif.cuerpo}</p>
+                <div class="notification-meta-row">
+                    <span>Expediente: <strong>${notif.expediente}</strong></span>
+                    <span>Cliente: <strong>${notif.cliente}</strong></span>
+                    ${notif.urgente && !notif.read ? `<span style="color:#ef4444; font-weight:bold;">⚠️ Término: ${notif.deadlineDays} días hábiles</span>` : ''}
+                </div>
+            </div>
+            <div class="notification-card-actions">
+                ${readBtnHtml}
+                ${actionBtnHtml}
+            </div>
+        `;
+        return card;
+    }
+
+    markAsRead(id) {
+        const notif = this.notifications.find(n => n.id === id);
+        if (notif) {
+            notif.read = true;
+            localStorage.setItem('protolegal_notifications', JSON.stringify(this.notifications));
+            this.renderNotifications();
+            this.updateBadgeCount();
+        }
+    }
+
+    markAsUnread(id) {
+        const notif = this.notifications.find(n => n.id === id);
+        if (notif) {
+            notif.read = false;
+            localStorage.setItem('protolegal_notifications', JSON.stringify(this.notifications));
+            this.renderNotifications();
+            this.updateBadgeCount();
+        }
+    }
+
+    deleteNotificationPermanently(id) {
+        if (confirm("¿Estás seguro de que deseas eliminar permanentemente esta notificación del historial?")) {
+            this.notifications = this.notifications.filter(n => n.id !== id);
+            localStorage.setItem('protolegal_notifications', JSON.stringify(this.notifications));
+            this.renderNotifications();
+            this.updateBadgeCount();
+        }
     }
 
     linkNotificationToTools(actionType, clientKey, dateStr, deadlineDays) {

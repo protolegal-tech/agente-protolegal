@@ -2691,8 +2691,12 @@ ${this.documents.filter(d => d.cliente === key).map(d => `- [${d.tipo}](${d.arch
             if (syncStatus) syncStatus.textContent = 'Buzón al día';
             if (btnSyncInbox) btnSyncInbox.disabled = false;
             
-            this.renderNotifications();
-            this.updateBadgeCount();
+            if (this.notifications.length === 0) {
+                setTimeout(() => this.syncEmailInbox(), 500);
+            } else {
+                this.renderNotifications();
+                this.updateBadgeCount();
+            }
             this.startBackgroundSyncTimer();
         } else {
             if (emailStatusText) emailStatusText.textContent = 'Buzón Desconectado';

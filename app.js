@@ -213,16 +213,22 @@ Este registro almacena los criterios que han sido verificados para evitar el uso
         this.thesisDatabase = [];
         this.parseTesisTextToDatabase();
 
-        // Inicializar Estado del Buzón Judicial (predeterminado: conectado a contacto@protolegal-tech.com)
+        // Inicializar Estado del Buzón Judicial (predeterminado: conectado a protolegal@outlook.es)
         const isEmailConnectedLocal = localStorage.getItem('protolegal_email_connected');
+        let currentEmail = localStorage.getItem('protolegal_email_address');
+        if (currentEmail === 'contacto@protolegal-tech.com') {
+            currentEmail = 'protolegal@outlook.es';
+            localStorage.setItem('protolegal_email_address', 'protolegal@outlook.es');
+        }
+        
         if (isEmailConnectedLocal === null) {
             this.emailConnected = true;
-            this.emailAddress = 'contacto@protolegal-tech.com';
+            this.emailAddress = 'protolegal@outlook.es';
             localStorage.setItem('protolegal_email_connected', 'true');
             localStorage.setItem('protolegal_email_address', this.emailAddress);
         } else {
             this.emailConnected = isEmailConnectedLocal === 'true';
-            this.emailAddress = localStorage.getItem('protolegal_email_address') || '';
+            this.emailAddress = currentEmail || '';
         }
         this.notifications = JSON.parse(localStorage.getItem('protolegal_notifications') || '[]');
         this.unreadNotificationsCount = parseInt(localStorage.getItem('protolegal_unread_count') || '0');

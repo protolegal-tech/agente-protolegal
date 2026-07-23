@@ -213,23 +213,11 @@ Este registro almacena los criterios que han sido verificados para evitar el uso
         this.thesisDatabase = [];
         this.parseTesisTextToDatabase();
 
-        // Inicializar Estado del Buzón Judicial (predeterminado: conectado a protolegal@outlook.es)
-        const isEmailConnectedLocal = localStorage.getItem('protolegal_email_connected');
-        let currentEmail = localStorage.getItem('protolegal_email_address');
-        if (currentEmail === 'contacto@protolegal-tech.com') {
-            currentEmail = 'protolegal@outlook.es';
-            localStorage.setItem('protolegal_email_address', 'protolegal@outlook.es');
-        }
-        
-        if (isEmailConnectedLocal === null) {
-            this.emailConnected = true;
-            this.emailAddress = 'protolegal@outlook.es';
-            localStorage.setItem('protolegal_email_connected', 'true');
-            localStorage.setItem('protolegal_email_address', this.emailAddress);
-        } else {
-            this.emailConnected = isEmailConnectedLocal === 'true';
-            this.emailAddress = currentEmail || '';
-        }
+        // Inicializar Estado del Buzón Judicial (SIEMPRE conectado a protolegal@outlook.es por requerimiento)
+        this.emailConnected = true;
+        this.emailAddress = 'protolegal@outlook.es';
+        localStorage.setItem('protolegal_email_connected', 'true');
+        localStorage.setItem('protolegal_email_address', 'protolegal@outlook.es');
         this.notifications = JSON.parse(localStorage.getItem('protolegal_notifications') || '[]');
         this.unreadNotificationsCount = parseInt(localStorage.getItem('protolegal_unread_count') || '0');
     }
@@ -2708,10 +2696,6 @@ ${this.documents.filter(d => d.cliente === key).map(d => `- [${d.tipo}](${d.arch
                                 </strong>
                             </div>
                         </div>
-
-                        <button onclick="app.disconnectEmailAccount()" class="btn-doc-action" style="width: 100%; margin-top: 5px; background: rgba(239, 68, 68, 0.15); border-color: #ef4444; color: #ef4444; transition: all 0.2s;">
-                            Desvincular Cuenta
-                        </button>
                     </div>
                 `;
             }

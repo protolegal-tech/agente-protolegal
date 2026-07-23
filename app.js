@@ -2943,22 +2943,6 @@ ${this.documents.filter(d => d.cliente === key).map(d => `- [${d.tipo}](${d.arch
         const btnSubmitEmail = document.getElementById('btn-submit-email');
         const emailInput = document.getElementById('inbox-email');
         const passwordInput = document.getElementById('inbox-password');
-        
-        if (this.emailConnected) {
-            this.emailConnected = false;
-            this.emailAddress = '';
-            this.notifications = [];
-            localStorage.setItem('protolegal_email_connected', 'false');
-            localStorage.setItem('protolegal_email_address', '');
-            localStorage.removeItem('protolegal_notifications');
-            
-            if (emailInput) emailInput.value = '';
-            if (passwordInput) passwordInput.value = '';
-            
-            this.loadEmailSettings();
-            this.appendMessage('system', 'Se ha desconectado la cuenta de correo del Buzón Judicial.');
-            return;
-        }
 
         const email = emailInput.value.trim();
         if (!email) return;
@@ -2987,6 +2971,18 @@ ${this.documents.filter(d => d.cliente === key).map(d => `- [${d.tipo}](${d.arch
                 }, 1000);
             }, 1000);
         }, 1000);
+    }
+
+    disconnectEmailAccount() {
+        this.emailConnected = false;
+        this.emailAddress = '';
+        this.notifications = [];
+        localStorage.setItem('protolegal_email_connected', 'false');
+        localStorage.setItem('protolegal_email_address', '');
+        localStorage.removeItem('protolegal_notifications');
+        
+        this.loadEmailSettings();
+        this.appendMessage('system', 'Se ha desvinculado la cuenta de correo del Buzón Judicial.');
     }
 
     syncEmailInbox() {

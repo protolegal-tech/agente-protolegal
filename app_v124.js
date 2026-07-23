@@ -310,6 +310,7 @@ Este registro almacena los criterios que han sido verificados para evitar el uso
         // Inicializar Estado del Buzón Judicial (SIEMPRE conectado a protolegal@outlook.es por requerimiento)
         this.emailConnected = true;
         this.emailAddress = 'protolegal@outlook.es';
+        this.emailPassword = localStorage.getItem('protolegal_email_password') || '';
         localStorage.setItem('protolegal_email_connected', 'true');
         localStorage.setItem('protolegal_email_address', 'protolegal@outlook.es');
         try {
@@ -2779,47 +2780,75 @@ ${this.documents.filter(d => d.cliente === key).map(d => `- [${d.tipo}](${d.arch
             if (statusDot) {
                 statusDot.className = 'status-dot green-pulse';
             }
-            if (syncStatus) syncStatus.textContent = 'Buzón al día';
+            if (syncStatus) syncStatus.textContent = this.emailPassword ? 'Buzón al día' : 'Requiere contraseña';
             if (btnSyncInbox) btnSyncInbox.disabled = false;
             
-            // Renderizar Tarjeta de Estado Activo para ocultar los inputs de email y contraseña
             if (connectionPanel) {
-                connectionPanel.innerHTML = `
-                    <div style="background: rgba(212, 175, 55, 0.05); border: 1px solid rgba(212, 175, 55, 0.2); border-radius: 8px; padding: 18px; display: flex; flex-direction: column; gap: 14px; margin-top: 10px;">
-                        <div style="display: flex; align-items: center; gap: 10px;">
-                            <div style="font-size: 1.8rem;">🔒</div>
-                            <div style="display: flex; flex-direction: column; gap: 2px;">
-                                <strong style="font-size: 0.85rem; color: var(--color-gold); font-weight: 600;">Buzón Vinculado</strong>
-                                <span style="font-size: 0.72rem; color: var(--text-muted);">Sincronización activa al 100%</span>
+                if (this.emailPassword) {
+                    // Renderizar Tarjeta de Estado Activo de Sincronización Real
+                    connectionPanel.innerHTML = `
+                        <div style="background: rgba(212, 175, 55, 0.05); border: 1px solid rgba(212, 175, 55, 0.2); border-radius: 8px; padding: 18px; display: flex; flex-direction: column; gap: 14px; margin-top: 10px;">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <div style="font-size: 1.8rem;">🔒</div>
+                                <div style="display: flex; flex-direction: column; gap: 2px;">
+                                    <strong style="font-size: 0.85rem; color: var(--color-gold); font-weight: 600;">Buzón Vinculado Real</strong>
+                                    <span style="font-size: 0.72rem; color: var(--text-muted);">Sincronización real activa</span>
+                                </div>
+                            </div>
+                            
+                            <div style="border-top: 1px solid rgba(255,255,255,0.05); padding-top: 12px; display: flex; flex-direction: column; gap: 8px;">
+                                <div style="display: flex; justify-content: space-between; font-size: 0.75rem;">
+                                    <span style="color: var(--text-secondary);">Dirección:</span>
+                                    <strong style="color: var(--text-primary); font-family: monospace;">${this.emailAddress}</strong>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; font-size: 0.75rem;">
+                                    <span style="color: var(--text-secondary);">Servidor Proxy:</span>
+                                    <strong style="color: var(--text-primary); font-family: monospace;">http://127.0.0.1:5000</strong>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; font-size: 0.75rem;">
+                                    <span style="color: var(--text-secondary);">IMAP Host:</span>
+                                    <strong style="color: var(--text-primary);">imap-mail.outlook.com</strong>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; font-size: 0.75rem;">
+                                    <span style="color: var(--text-secondary);">Estado de Red:</span>
+                                    <strong style="color: #10b981; display: flex; align-items: center; gap: 4px;">
+                                        <span style="display:inline-block; width: 6px; height: 6px; border-radius: 50%; background: #10b981;"></span> Sincronizado
+                                    </strong>
+                                </div>
                             </div>
                         </div>
-                        
-                        <div style="border-top: 1px solid rgba(255,255,255,0.05); padding-top: 12px; display: flex; flex-direction: column; gap: 8px;">
-                            <div style="display: flex; justify-content: space-between; font-size: 0.75rem;">
-                                <span style="color: var(--text-secondary);">Dirección:</span>
-                                <strong style="color: var(--text-primary); font-family: monospace;">${this.emailAddress}</strong>
+                    `;
+                } else {
+                    // Falta ingresar contraseña
+                    connectionPanel.innerHTML = `
+                        <div style="background: rgba(212, 175, 55, 0.05); border: 1px solid rgba(212, 175, 55, 0.2); border-radius: 8px; padding: 18px; display: flex; flex-direction: column; gap: 14px; margin-top: 10px;">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <div style="font-size: 1.8rem;">🔒</div>
+                                <div style="display: flex; flex-direction: column; gap: 2px;">
+                                    <strong style="font-size: 0.85rem; color: var(--color-gold); font-weight: 600;">Buzón Vinculado</strong>
+                                    <span style="font-size: 0.72rem; color: #f59e0b;">Falta contraseña de Outlook</span>
+                                </div>
                             </div>
-                            <div style="display: flex; justify-content: space-between; font-size: 0.75rem;">
-                                <span style="color: var(--text-secondary);">Servidor:</span>
-                                <strong style="color: var(--text-primary);">imap-mail.outlook.com</strong>
-                            </div>
-                            <div style="display: flex; justify-content: space-between; font-size: 0.75rem;">
-                                <span style="color: var(--text-secondary);">Protocolo:</span>
-                                <strong style="color: var(--text-primary);">IMAP / SSL (Puerto 993)</strong>
-                            </div>
-                            <div style="display: flex; justify-content: space-between; font-size: 0.75rem;">
-                                <span style="color: var(--text-secondary);">Estado de Red:</span>
-                                <strong style="color: #10b981; display: flex; align-items: center; gap: 4px;">
-                                    <span style="display:inline-block; width: 6px; height: 6px; border-radius: 50%; background: #10b981;"></span> Sincronizado
-                                </strong>
-                            </div>
+                            
+                            <form id="form-email-password-only" onsubmit="app.saveEmailPasswordOnly(event)" style="display: flex; flex-direction: column; gap: 10px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 12px; margin: 0;">
+                                <p style="font-size: 0.72rem; color: var(--text-secondary); margin: 0;">Ingresa la contraseña de <strong>${this.emailAddress}</strong> para activar la sincronización real:</p>
+                                <div style="display: flex; gap: 8px;">
+                                    <input type="password" id="inbox-password-only" placeholder="Contraseña de Outlook" required style="flex-grow: 1; padding: 8px 12px; background: rgba(0,0,0,0.3); border: 1px solid var(--border-glass); border-radius: 4px; color: var(--text-primary); font-size: 0.8rem;">
+                                    <button type="submit" class="btn-primary" style="padding: 8px 14px; font-size: 0.8rem; font-weight: 600; cursor: pointer; border-radius: 4px; border: none; background: var(--color-gold); color: #000;">Activar</button>
+                                </div>
+                            </form>
                         </div>
-                    </div>
-                `;
+                    `;
+                }
             }
 
             if (this.notifications.length === 0) {
-                setTimeout(() => this.syncEmailInbox(), 500);
+                if (this.emailPassword) {
+                    setTimeout(() => this.syncEmailInbox(), 500);
+                } else {
+                    this.renderNotifications();
+                    this.updateBadgeCount();
+                }
             } else {
                 this.renderNotifications();
                 this.updateBadgeCount();
@@ -3051,9 +3080,11 @@ ${this.documents.filter(d => d.cliente === key).map(d => `- [${d.tipo}](${d.arch
         const btnSubmitEmail = document.getElementById('btn-submit-email');
         const emailInput = document.getElementById('inbox-email');
         const passwordInput = document.getElementById('inbox-password');
+        const providerSelect = document.getElementById('inbox-provider');
 
         const email = emailInput.value.trim();
-        if (!email) return;
+        const password = passwordInput.value.trim();
+        if (!email || !password) return;
 
         if (btnSubmitEmail) btnSubmitEmail.disabled = true;
         if (statusDot) statusDot.className = 'status-dot gold-pulse';
@@ -3068,25 +3099,44 @@ ${this.documents.filter(d => d.cliente === key).map(d => `- [${d.tipo}](${d.arch
                 setTimeout(() => {
                     this.emailConnected = true;
                     this.emailAddress = email;
+                    this.emailPassword = password;
                     localStorage.setItem('protolegal_email_connected', 'true');
                     localStorage.setItem('protolegal_email_address', email);
+                    localStorage.setItem('protolegal_email_password', password);
+                    localStorage.setItem('protolegal_email_provider', providerSelect ? providerSelect.value : 'outlook');
                     
                     if (btnSubmitEmail) btnSubmitEmail.disabled = false;
                     this.loadEmailSettings();
                     this.syncEmailInbox();
                     
-                    this.appendMessage('system', `Se ha conectado exitosamente la cuenta **${email}** al Buzón Judicial. Se inició la sincronización con el servidor del TFJA.`);
+                    this.appendMessage('system', `Se ha conectado exitosamente la cuenta **${email}** al Buzón Judicial. Se inició la sincronización con el servidor.`);
                 }, 1000);
             }, 1000);
         }, 1000);
     }
 
+    saveEmailPasswordOnly(e) {
+        e.preventDefault();
+        const pwdInput = document.getElementById('inbox-password-only');
+        if (!pwdInput) return;
+        const pwd = pwdInput.value.trim();
+        if (!pwd) return;
+        
+        localStorage.setItem('protolegal_email_password', pwd);
+        this.emailPassword = pwd;
+        this.loadEmailSettings();
+        this.syncEmailInbox();
+    }
+
     disconnectEmailAccount() {
         this.emailConnected = false;
         this.emailAddress = '';
+        this.emailPassword = '';
         this.notifications = [];
         localStorage.setItem('protolegal_email_connected', 'false');
         localStorage.setItem('protolegal_email_address', '');
+        localStorage.removeItem('protolegal_email_password');
+        localStorage.removeItem('protolegal_email_provider');
         localStorage.removeItem('protolegal_notifications');
         
         this.loadEmailSettings();
@@ -3095,89 +3145,108 @@ ${this.documents.filter(d => d.cliente === key).map(d => `- [${d.tipo}](${d.arch
 
     syncEmailInbox() {
         if (!this.emailConnected) return;
-
+        
+        const emailStatusText = document.getElementById('email-status-text');
         const btnSyncInbox = document.getElementById('btn-sync-inbox');
         const syncStatus = document.getElementById('inbox-sync-status');
         const statusDot = document.getElementById('status-dot');
 
+        if (!this.emailPassword) {
+            if (syncStatus) syncStatus.textContent = 'Falta contraseña';
+            return;
+        }
+
         if (btnSyncInbox) btnSyncInbox.disabled = true;
-        if (syncStatus) syncStatus.textContent = 'Sincronizando buzón...';
+        if (syncStatus) syncStatus.textContent = 'Conectando con servidor real...';
         if (statusDot) statusDot.className = 'status-dot gold-pulse';
 
-        setTimeout(() => {
-            const today = new Date();
-            const formatTime = (hoursAgo) => {
-                const d = new Date(today);
-                d.setHours(today.getHours() - hoursAgo);
-                return `${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')} (Hoy)`;
-            };
-
-            const formatDate = (daysAgo) => {
-                const d = new Date(today);
-                d.setDate(today.getDate() - daysAgo);
-                const meses = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
-                return `${d.getDate()} de ${meses[d.getMonth()]} de ${d.getFullYear()}`;
-            };
-
-            const registeredKeys = Object.keys(this.clients);
-            const getClient = (fallbackKey) => {
-                if (registeredKeys.includes(fallbackKey)) return fallbackKey;
-                if (registeredKeys.length > 0 && Math.random() > 0.4) {
-                    return registeredKeys[Math.floor(Math.random() * registeredKeys.length)];
-                }
-                return fallbackKey;
-            };
-
-            this.notifications = [
-                {
-                    id: 'notif_1',
-                    sender: 'TFJA - Primera Sala Regional Metropolitana',
-                    badge: 'tfja',
-                    badgeText: 'TFJA',
-                    subject: 'Acuerdo de Admisión e Inicio de Juicio de Nulidad',
-                    time: formatTime(1),
-                    dateRaw: new Date().toISOString().split('T')[0],
-                    expediente: '14820/26-17-01-4',
-                    cliente: getClient('NEXTMED'),
-                    cuerpo: 'Se tiene por admitida la demanda de nulidad promovida por la actora en contra de la resolución de rescisión administrativa decretada por el IMSS. Se otorga traslado a la demandada.',
-                    urgente: true,
-                    deadlineDays: 3,
-                    actionText: 'Computar Plazo de Desahogo',
-                    actionType: 'plazo',
-                    read: false
-                },
-                {
-                    id: 'notif_2',
-                    sender: 'IMSS - Órgano Interno de Control Central',
-                    badge: 'dof',
-                    badgeText: 'Procedimiento',
-                    subject: 'Citación para Audiencia de Conciliación en CompraNet',
-                    time: formatTime(3),
-                    dateRaw: new Date().toISOString().split('T')[0],
-                    expediente: 'OIC/IMSS/SUT/004/2026',
-                    cliente: getClient('EEE'),
-                    cuerpo: 'Se convoca a las partes a comparecer a la audiencia de avenencia presencial a celebrarse en las oficinas de la SFP para mediar discrepancias sobre el cumplimiento de contratos.',
-                    urgente: true,
-                    deadlineDays: 5,
-                    actionText: 'Agendar y Preparar Documentos',
-                    actionType: 'redactar',
-                    read: false
-                }
-            ];
-
-            localStorage.setItem('protolegal_notifications', JSON.stringify(this.notifications));
-            
-            if (btnSyncInbox) btnSyncInbox.disabled = false;
-            if (syncStatus) {
-                const now = new Date();
-                syncStatus.textContent = `Buzón al día (Sincronizado: ${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')})`;
+        // Intentar conectar con el servidor local proxy en Python
+        fetch('http://127.0.0.1:5000/get-emails', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                email: this.emailAddress,
+                password: this.emailPassword,
+                provider: localStorage.getItem('protolegal_email_provider') || 'outlook'
+            })
+        })
+        .then(response => {
+            if (!response.ok) {
+                return response.json().then(err => { throw new Error(err.error || 'Error del servidor proxy'); });
             }
-            if (statusDot) statusDot.className = 'status-dot green-pulse';
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                this.notifications = data.emails;
+                localStorage.setItem('protolegal_notifications', JSON.stringify(this.notifications));
+                
+                if (btnSyncInbox) btnSyncInbox.disabled = false;
+                if (syncStatus) {
+                    const now = new Date();
+                    syncStatus.textContent = `Sincronizado: ${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')} (Real)`;
+                }
+                if (statusDot) statusDot.className = 'status-dot green-pulse';
+                if (emailStatusText) emailStatusText.textContent = `Conectado: ${this.emailAddress}`;
 
-            this.renderNotifications();
-            this.updateBadgeCount();
-            this.appendMessage('system', 'Sincronización del buzón completada. Se encontraron 2 notificaciones procesales críticas.');
-        }, 1500);
+                // Recargar el panel lateral para asegurar que no se muestre el error de offline
+                this.loadEmailSettings();
+                this.renderNotifications();
+                this.updateBadgeCount();
+                
+                this.showToastNotification(
+                    "📬 Buzón Sincronizado",
+                    `Se importaron ${this.notifications.length} correos reales exitosamente.`,
+                    () => this.switchTab('inbox')
+                );
+                this.appendMessage('system', `Sincronización real completada. Se importaron **${this.notifications.length} correos** de tu bandeja de entrada.`);
+            } else {
+                throw new Error(data.error || 'Error desconocido');
+            }
+        })
+        .catch(err => {
+            console.error("Error sincronizando correo real:", err);
+            if (btnSyncInbox) btnSyncInbox.disabled = false;
+            if (statusDot) statusDot.className = 'status-dot red-pulse';
+            
+            const isConnectionError = err.message.includes('Failed to fetch') || err.message.includes('network') || err.message.includes('Fetch');
+            
+            if (isConnectionError) {
+                if (syncStatus) syncStatus.textContent = 'Servidor local offline';
+                this.appendMessage('system', `⚠️ **Error de Sincronización Real:** No se pudo conectar al puente local. Para ver tus correos reales, ejecuta **\`python server.py\`** en la terminal de tu computadora.`);
+                
+                // Mostrar guía interactiva en el panel
+                const connectionPanel = document.getElementById('email-connection-panel');
+                if (connectionPanel) {
+                    connectionPanel.innerHTML = `
+                        <div style="background: rgba(239, 68, 68, 0.05); border: 1px solid rgba(239, 68, 68, 0.2); border-radius: 8px; padding: 18px; display: flex; flex-direction: column; gap: 14px; margin-top: 10px;">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <div style="font-size: 1.8rem;">⚠️</div>
+                                <div style="display: flex; flex-direction: column; gap: 2px;">
+                                    <strong style="font-size: 0.85rem; color: #ef4444; font-weight: 600;">Servidor Offline</strong>
+                                    <span style="font-size: 0.72rem; color: var(--text-muted);">El puente local no está corriendo</span>
+                                </div>
+                            </div>
+                            
+                            <div style="border-top: 1px solid rgba(255,255,255,0.05); padding-top: 12px; font-size: 0.75rem; color: var(--text-secondary); line-height: 1.4;">
+                                <p style="margin: 0 0 8px 0;">Para descargar tus correos reales de <strong>${this.emailAddress}</strong>, sigue estos pasos:</p>
+                                <ol style="margin: 0; padding-left: 16px; display: flex; flex-direction: column; gap: 6px;">
+                                    <li>Abre la consola o PowerShell de Windows.</li>
+                                    <li>Navega a la carpeta de este agente.</li>
+                                    <li>Ejecuta el comando: <code style="background: rgba(255,255,255,0.1); padding: 2px 4px; border-radius: 3px; color: var(--color-gold); font-family: monospace;">python server.py</code></li>
+                                    <li>Presiona el botón <strong>"Sincronizar ahora"</strong> de arriba.</li>
+                                </ol>
+                            </div>
+                        </div>
+                    `;
+                }
+            } else {
+                if (syncStatus) syncStatus.textContent = 'Error de conexión';
+                this.appendMessage('system', `❌ **Fallo de Sincronización:** ${err.message}. Verifica tus credenciales o si requieres una *Contraseña de Aplicación* (si tienes activado el doble factor de autenticación).`);
+            }
+        });
     }
 
     renderNotifications() {

@@ -2809,7 +2809,7 @@ ${this.documents.filter(d => d.cliente === key).map(d => `- [${d.tipo}](${d.arch
                 subject: 'Acuerdo de Radicación de Recurso de Apelación',
                 expediente: '16921/26-17-03-9',
                 cliente: 'ASPID',
-                cuerpo: 'Se notifica acuerdo admisorio del recurso de apelación interpuesto por la representación legal de ASPID en contra de la multa de COFEPRIS.',
+                cuerpo: 'Se notifica acuerdo admisorio del recurso de apelación interpuesto por la representación legal de {CLIENT} en contra de la multa de COFEPRIS.',
                 urgente: true,
                 deadlineDays: 3,
                 actionText: 'Computar Plazo de Desahogo',
@@ -2835,7 +2835,7 @@ ${this.documents.filter(d => d.cliente === key).map(d => `- [${d.tipo}](${d.arch
                 subject: 'Notificación de Concesión de Amparo e Invalidez de Inhabilitación',
                 expediente: 'Amparo D.A. 482/2026',
                 cliente: 'MARLEX-HC',
-                cuerpo: 'El Tribunal Colegiado resuelve conceder amparo liso y llano a la quejosa, ordenando dejar sin efectos la inhabilitación del IMSS en CompraNet.',
+                cuerpo: 'El Tribunal Colegiado resuelve conceder amparo liso y llano a la quejosa {CLIENT}, ordenando dejar sin efectos la inhabilitación del IMSS en CompraNet.',
                 urgente: true,
                 deadlineDays: 15,
                 actionText: 'Registrar Sentencia en Memoria',
@@ -2845,6 +2845,30 @@ ${this.documents.filter(d => d.cliente === key).map(d => `- [${d.tipo}](${d.arch
 
         const index = Math.floor(Math.random() * pool.length);
         const template = pool[index];
+
+        // Determinar cliente dinámicamente para recibir TODOS los correos (registrados y externos)
+        let targetClient = template.cliente;
+        if (template.cliente !== 'GENERAL') {
+            const registeredKeys = Object.keys(this.clients);
+            // 50% de probabilidad de usar uno registrado si existen, 50% de usar un cliente externo/nuevo
+            if (Math.random() > 0.5 && registeredKeys.length > 0) {
+                targetClient = registeredKeys[Math.floor(Math.random() * registeredKeys.length)];
+            } else {
+                const externalPool = [
+                    'Constructora Alfa S.A. de C.V.',
+                    'Sistemas Médicos del Norte',
+                    'Licitaciones del Bajío',
+                    'Consorcio Logístico Vial',
+                    'Distribuidora Universal Médica',
+                    'Servicios Tecnológicos del Centro',
+                    'Edificaciones Metrópolis'
+                ];
+                targetClient = externalPool[Math.floor(Math.random() * externalPool.length)];
+            }
+        }
+
+        // Reemplazar marcador de posición en el cuerpo si aplica
+        const bodyContent = template.cuerpo.replace('{CLIENT}', targetClient);
         
         const now = new Date();
         const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')} (Hoy)`;
@@ -2858,8 +2882,8 @@ ${this.documents.filter(d => d.cliente === key).map(d => `- [${d.tipo}](${d.arch
             time: timeStr,
             dateRaw: now.toISOString().split('T')[0],
             expediente: template.expediente,
-            cliente: template.cliente,
-            cuerpo: template.cuerpo,
+            cliente: targetClient,
+            cuerpo: bodyContent,
             urgente: template.urgente,
             deadlineDays: template.deadlineDays,
             actionText: template.actionText,
@@ -2965,6 +2989,15 @@ ${this.documents.filter(d => d.cliente === key).map(d => `- [${d.tipo}](${d.arch
                 return `${d.getDate()} de ${meses[d.getMonth()]} de ${d.getFullYear()}`;
             };
 
+            const registeredKeys = Object.keys(this.clients);
+            const getClient = (fallbackKey) => {
+                if (registeredKeys.includes(fallbackKey)) return fallbackKey;
+                if (registeredKeys.length > 0 && Math.random() > 0.4) {
+                    return registeredKeys[Math.floor(Math.random() * registeredKeys.length)];
+                }
+                return fallbackKey;
+            };
+
             this.notifications = [
                 {
                     id: 'notif_1',
@@ -2975,7 +3008,7 @@ ${this.documents.filter(d => d.cliente === key).map(d => `- [${d.tipo}](${d.arch
                     time: formatTime(1),
                     dateRaw: new Date().toISOString().split('T')[0],
                     expediente: '14820/26-17-01-4',
-                    cliente: 'NEXTMED',
+                    cliente: getClient('NEXTMED'),
                     cuerpo: 'Se tiene por admitida la demanda de nulidad promovida por la actora en contra de la resolución de rescisión administrativa decretada por el IMSS. Se otorga traslado a la demandada.',
                     urgente: true,
                     deadlineDays: 3,
@@ -2992,7 +3025,7 @@ ${this.documents.filter(d => d.cliente === key).map(d => `- [${d.tipo}](${d.arch
                     time: formatTime(3),
                     dateRaw: new Date().toISOString().split('T')[0],
                     expediente: 'OIC/IMSS/SUT/004/2026',
-                    cliente: 'EEE',
+                    cliente: getClient('EEE'),
                     cuerpo: 'Se convoca a las partes a comparecer a la audiencia de avenencia presencial a celebrarse en las oficinas de la SFP para mediar discrepancias sobre el cumplimiento de contratos.',
                     urgente: true,
                     deadlineDays: 5,
@@ -3026,12 +3059,29 @@ ${this.documents.filter(d => d.cliente === key).map(d => `- [${d.tipo}](${d.arch
                     time: formatDate(2),
                     dateRaw: new Date(today - 172800000).toISOString().split('T')[0],
                     expediente: '26-0922-TFJA-04-1',
-                    cliente: 'MARLEX-HC',
+                    cliente: getClient('MARLEX-HC'),
                     cuerpo: 'La Magistrada Instructora previene a la actora para que en el término legal de tres días hábiles exhiba copia certificada del acta de entrega-recepción del Almacén Central Vallejo.',
                     urgente: true,
                     deadlineDays: 3,
                     actionText: 'Calcular Vencimiento de Prevención',
                     actionType: 'plazo',
+                    read: false
+                },
+                {
+                    id: 'notif_5',
+                    sender: 'Juzgado de Distrito en Materia Administrativa',
+                    badge: 'scjn',
+                    badgeText: 'Juzgado',
+                    subject: 'Suspensión Provisional de Inhabilitación en CompraNet',
+                    time: formatDate(3),
+                    dateRaw: new Date(today - 259200000).toISOString().split('T')[0],
+                    expediente: 'Juicio de Amparo 1145/2026',
+                    cliente: 'Inmobiliaria del Centro S.A.',
+                    cuerpo: 'Se concede la suspensión provisional solicitada por la quejosa para efectos de que las dependencias se abstengan de publicar la inhabilitación decretada por la SFP.',
+                    urgente: false,
+                    deadlineDays: 0,
+                    actionText: 'Registrar en Expediente',
+                    actionType: 'redactar',
                     read: false
                 }
             ];
@@ -3047,7 +3097,7 @@ ${this.documents.filter(d => d.cliente === key).map(d => `- [${d.tipo}](${d.arch
 
             this.renderNotifications();
             this.updateBadgeCount();
-            this.appendMessage('system', 'Sincronización del buzón completada. Se encontraron 3 notificaciones procesales críticas y 1 tesis relevante.');
+            this.appendMessage('system', 'Sincronización del buzón completada. Se encontraron 4 notificaciones procesales críticas y 1 tesis relevante.');
         }, 1500);
     }
 

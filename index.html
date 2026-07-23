@@ -637,10 +637,8 @@
                                 <div class="form-group">
                                     <label for="inbox-provider">Proveedor de Correo:</label>
                                     <select id="inbox-provider" class="form-control" style="background: rgba(0,0,0,0.3); border: 1px solid var(--border-glass); color: var(--text-primary); border-radius: 6px; padding: 10px; width: 100%;">
-                                        <option value="tfja">Servidor Notificaciones TFJA (@tfja.gob.mx)</option>
-                                        <option value="gmail">Google Gmail / G-Suite</option>
                                         <option value="outlook">Microsoft Outlook / Office 365</option>
-                                        <option value="imap">Servidor de Correo Privado (IMAP/SSL)</option>
+                                        <option value="gmail">Google Gmail / G-Suite</option>
                                     </select>
                                 </div>
                                 <div class="form-group">
@@ -650,16 +648,6 @@
                                 <div class="form-group" id="group-password">
                                     <label for="inbox-password">Contraseña o Contraseña de Aplicación:</label>
                                     <input type="password" id="inbox-password" placeholder="••••••••••••••••" required style="background: rgba(0,0,0,0.3); border: 1px solid var(--border-glass); color: var(--text-primary); border-radius: 6px; padding: 10px; width: 100%;">
-                                </div>
-                                <div id="imap-details-fields" class="hidden">
-                                    <div class="form-group">
-                                        <label for="inbox-host">Servidor IMAP:</label>
-                                        <input type="text" id="inbox-host" placeholder="imap.tufirma.com" style="background: rgba(0,0,0,0.3); border: 1px solid var(--border-glass); color: var(--text-primary); border-radius: 6px; padding: 10px; width: 100%;">
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="inbox-port">Puerto IMAP:</label>
-                                        <input type="number" id="inbox-port" placeholder="993" style="background: rgba(0,0,0,0.3); border: 1px solid var(--border-glass); color: var(--text-primary); border-radius: 6px; padding: 10px; width: 100%;">
-                                    </div>
                                 </div>
 
                                 <button type="submit" class="btn-doc-action btn-gold" id="btn-submit-email" style="width: 100%; margin-top: 15px; height: 42px;">Conectar Buzón Judicial</button>
@@ -774,6 +762,6 @@
     <!-- Scripts de la Aplicación -->
     <script src="https://cdn.jsdelivr.net/npm/mammoth@1.12.0/mammoth.browser.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
-    <script src="app.js?v=1.1.6"></script>
+    <script src="app.js?v=1.1.7"></script>
 </body>
 </html>

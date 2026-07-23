@@ -307,20 +307,6 @@ Este registro almacena los criterios que han sido verificados para evitar el uso
             formGen.addEventListener('submit', (e) => this.generateWizardDocument(e));
         }
 
-        // Cambiar campos de proveedor de correo
-        const selectProvider = document.getElementById('inbox-provider');
-        if (selectProvider) {
-            selectProvider.addEventListener('change', (e) => {
-                const imapFields = document.getElementById('imap-details-fields');
-                if (imapFields) {
-                    if (e.target.value === 'imap') {
-                        imapFields.classList.remove('hidden');
-                    } else {
-                        imapFields.classList.add('hidden');
-                    }
-                }
-            });
-        }
     }
 
     // Navegación fluida (SPA)
@@ -2753,9 +2739,7 @@ ${this.documents.filter(d => d.cliente === key).map(d => `- [${d.tipo}](${d.arch
                             <label for="inbox-provider">Proveedor de Correo:</label>
                             <select id="inbox-provider" class="form-control" style="background: rgba(0,0,0,0.3); border: 1px solid var(--border-glass); color: var(--text-primary); border-radius: 6px; padding: 10px; width: 100%;">
                                 <option value="outlook">Microsoft Outlook / Office 365</option>
-                                <option value="tfja">Servidor Notificaciones TFJA (@tfja.gob.mx)</option>
                                 <option value="gmail">Google Gmail / G-Suite</option>
-                                <option value="imap">Servidor de Correo Privado (IMAP/SSL)</option>
                             </select>
                         </div>
                         <div class="form-group">
@@ -2766,18 +2750,8 @@ ${this.documents.filter(d => d.cliente === key).map(d => `- [${d.tipo}](${d.arch
                             <label for="inbox-password">Contraseña o Contraseña de Aplicación:</label>
                             <input type="password" id="inbox-password" placeholder="••••••••••••••••" required style="background: rgba(0,0,0,0.3); border: 1px solid var(--border-glass); color: var(--text-primary); border-radius: 6px; padding: 10px; width: 100%;">
                         </div>
-                        <div id="imap-details-fields" class="hidden">
-                            <div class="form-group">
-                                <label for="inbox-host">Servidor IMAP:</label>
-                                <input type="text" id="inbox-host" placeholder="imap.tufirma.com" style="background: rgba(0,0,0,0.3); border: 1px solid var(--border-glass); color: var(--text-primary); border-radius: 6px; padding: 10px; width: 100%;">
-                            </div>
-                            <div class="form-group">
-                                <label for="inbox-port">Puerto IMAP:</label>
-                                <input type="number" id="inbox-port" placeholder="993" style="background: rgba(0,0,0,0.3); border: 1px solid var(--border-glass); color: var(--text-primary); border-radius: 6px; padding: 10px; width: 100%;">
-                            </div>
-                        </div>
 
-                        <button type="submit" class="btn-doc-action btn-gold" id="btn-submit-email" style="width: 100%; margin-top: 15px; height: 42px;">Conectar Buzón Judicial</button>
+                        <button type="submit" class="btn-gold btn-doc-action" id="btn-submit-email" style="width: 100%; margin-top: 15px; height: 42px;">Conectar Buzón Judicial</button>
                     </form>
 
                     <div class="security-notice" style="margin-top: 20px;">
@@ -2785,21 +2759,6 @@ ${this.documents.filter(d => d.cliente === key).map(d => `- [${d.tipo}](${d.arch
                         <span><strong>Privacidad garantizada:</strong> Las credenciales se almacenan de forma local y nunca salen de tu PC.</span>
                     </div>
                 `;
-                
-                // Vincular eventos DOM del nuevo selector de proveedor
-                const selectProvider = document.getElementById('inbox-provider');
-                if (selectProvider) {
-                    selectProvider.addEventListener('change', (e) => {
-                        const imapFields = document.getElementById('imap-details-fields');
-                        if (imapFields) {
-                            if (e.target.value === 'imap') {
-                                imapFields.classList.remove('hidden');
-                            } else {
-                                imapFields.classList.add('hidden');
-                            }
-                        }
-                    });
-                }
             }
 
             const listContainer = document.getElementById('inbox-notifications-list');
